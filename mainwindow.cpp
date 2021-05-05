@@ -13,3 +13,10 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+void MainWindow::on_beginButton_clicked()
+{
+    //Create File Dialog
+    QString filePath = QFileDialog::getOpenFileName(this, "Select a folder", "");
+    ui->textEdit->setText("You have selected: " + filePath);
+}
