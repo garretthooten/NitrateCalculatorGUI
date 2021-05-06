@@ -14,30 +14,91 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTextEdit" name="textEdit">
+   <widget class="QLabel" name="IntroText">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>80</y>
-      <width>761</width>
-      <height>451</height>
+      <x>30</x>
+      <y>0</y>
+      <width>721</width>
+      <height>141</height>
      </rect>
     </property>
-    <property name="placeholderText">
-     <string>Welcome to the Nitrate Calculator! Begin by clicking File -&gt; New Calculation.  Select a folder that contains all of the files required.</string>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+    <property name="text">
+     <string>Welcome to the Nitrate Calculator! Begin by entering the year to calculate and opening the travel time file for that year.</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::RichText</enum>
     </property>
    </widget>
-   <widget class="QPushButton" name="beginButton">
+   <widget class="QTextEdit" name="YearEntry">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>181</width>
-      <height>61</height>
+      <x>30</x>
+      <y>90</y>
+      <width>221</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="placeholderText">
+     <string>Enter the year you are calculating</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="TravelTimeFileButton">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>150</y>
+      <width>231</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
-     <string>Open Folder</string>
+     <string>Open Travel Time File</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="textBrowser">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>120</y>
+      <width>451</width>
+      <height>391</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string>Information about your calculation will appear here.</string>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="progressBar">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>90</y>
+      <width>451</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>24</number>
     </property>
    </widget>
   </widget>
@@ -52,7 +113,7 @@
    </property>
    <widget class="QMenu" name="menuNitrate_Calculator">
     <property name="autoFillBackground">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
     <property name="title">
      <string>Nitrate Calculator</string>
