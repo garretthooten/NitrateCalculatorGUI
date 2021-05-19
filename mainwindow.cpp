@@ -72,55 +72,64 @@ void MainWindow::on_TravelTimeFileButton_clicked()
     QString year_string = ui->YearEntry->toPlainText();
     calculation_year = year_string.toInt();
     //parse travel time csv
-    std::vector< std::vector<std::string> > tt_string;
-    while(tt_string.size() <= 0)
+    QString tt_filepath = QFileDialog::getOpenFileName(this, "Open a travel time .csv", "/home", ".CSV (*.csv)");
+    travel_time = Data_Map(tt_filepath.toUtf8().constData());
+    travel_time.gather_variables();
+    travel_time.int_map = Data_Map::string_to_int(travel_time.string_map, 6);
+
+    if(travel_time.string_map.size() > 0)
     {
-        QString tt_filepath = QFileDialog::getOpenFileName(this, "Open a travel time .csv");
-        tt_string = parse_CSV(tt_filepath.toUtf8().constData());
-    }
 
-    std::cout << "Grabbing variables!" << std::endl;
-    //grab variables from beginning of tt file
-    tt_ncols = std::stoi(tt_string[0][1]);
-    tt_nrows = std::stoi(tt_string[1][1]);
-    tt_xllcorner = std::atof(tt_string[2][1].c_str());
-    tt_yllcorner = std::atof(tt_string[3][1].c_str());
-    tt_cellsize = std::stoi(tt_string[4][1]);
-    NODATA_VALUE = std::stoi(tt_string[5][1]);
-    std::cout << "Variables grabbed." << std::endl;
+        std::cout << "Expected rows: " << travel_time.nrows << "Actual rows: " << travel_time.int_map.size() << "\nExpected Columns: " << travel_time.ncols << " Actual columns: " << travel_time.int_map[0].size() << std::endl;
 
-    std::vector< std::vector<std::string> > my_string_vector;
-    travel_time = string_to_int(tt_string);
-    std::cout << "Expected rows: " << tt_nrows << "Actual rows: " << travel_time.size() << "\nExpected Columns: " << tt_ncols << " Actual columns: " << travel_time[0].size() << std::endl;
-
-    //search for years
-    for(int i = 0; i < travel_time.size(); i++)
-    {
-        for(int j = 0; j < travel_time[i].size(); j++)
+        //search for years
+        for(int i = 0; i < travel_time.int_map.size(); i++)
         {
-            if(std::count(required_years.begin(), required_years.end(), travel_time[i][j]) == 0 && travel_time[i][j] != NODATA_VALUE)
+            for(int j = 0; j < travel_time.int_map[i].size(); j++)
             {
-                required_years.push_back(travel_time[i][j]);
+                if(std::count(required_years.begin(), required_years.end(), travel_time.int_map[i][j]) == 0 && travel_time.int_map[i][j] != travel_time.NODATA_VALUE)
+                {
+                    required_years.push_back(travel_time.int_map[i][j]);
+                }
             }
         }
-    }
-    std::sort(required_years.begin(), required_years.end());
-    std::cout << "Found years: ";
-    for(int i = 0; i < required_years.size(); i++)
-    {
-        std::cout << 2019 - required_years[i] << ", ";
-    }
-    std::cout << std::endl;
+        std::sort(required_years.begin(), required_years.end());
+        std::cout << "Found years: ";
+        for(int i = 0; i < required_years.size(); i++)
+        {
+            std::cout << 2019 - required_years[i] << ", ";
+        }
+        std::cout << std::endl;
 
-    //display travel_time information
-    QString tt_info = QString(year_string + " Travel Time Stats:\nncols: %1\nnrows: %2\nxllcorner: %3\nyllcorner: %4\ncellsize: %5\nNODATA_VALUE: %6").arg(tt_ncols).arg(tt_nrows).arg(tt_xllcorner).arg(tt_yllcorner).arg(tt_cellsize).arg(NODATA_VALUE);
-    ui->textBrowser->setText(tt_info);
+        //display travel_time information
+        QString tt_info = QString(year_string + " Travel Time Stats:\nncols: %1\nnrows: %2\nxllcorner: %3\nyllcorner: %4\ncellsize: %5\nNODATA_VALUE: %6").arg(travel_time.ncols).arg(travel_time.nrows).arg(travel_time.xllcorner).arg(travel_time.yllcorner).arg(travel_time.cellsize).arg(travel_time.NODATA_VALUE);
+        ui->textBrowser->setText(tt_info);
+    }
+    else
+    {
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Could not read file. Please try again.");
+        messageBox.setFixedSize(500,200);
+    }
 
 }
 
 void MainWindow::on_folderButton_clicked()
 {
-    QString my_filepath = QFileDialog::getExistingDirectory(this, "Open a folder containing all your .csv's");
-    QString newText = QString("My filepath: %1").arg(my_filepath);
-    ui->textBrowser->setText(newText);
+    QStringList files;
+    files.append(QFileDialog::getOpenFileNames(this, "Select one or more .csv files to open", "/home", ".CSV File (*.csv)"));
+
+    QString my_text;
+    for(QString path : files)
+    {
+        my_text = my_text + "\n" + path;
+    }
+    ui->textBrowser->setText(my_text);
+    QFileInfo file_info = QFileInfo(files[0]);
+    std::cout << "File name: " << file_info.fileName().toUtf8().constData() << std::endl;
+    std::stringstream ss;
+    ss << file_info.fileName().toUtf8().constData();
+    int num;
+    ss >> num;
+    std::cout << "Integer for this file's year: " << num << std::endl;
 }

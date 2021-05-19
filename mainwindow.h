@@ -10,6 +10,7 @@
 #include <iostream>
 #include <stddef.h>
 #include <sstream>
+#include "data_map.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,9 +35,11 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
+    Data_Map travel_time;
+
     //information variables
     int calculation_year;
-    std::vector< std::vector<int> > travel_time;
+    //std::vector< std::vector<int> > travel_time;
     int tt_ncols;
     int tt_nrows;
     double tt_xllcorner;
