@@ -10,6 +10,7 @@
 #include <iostream>
 #include <stddef.h>
 #include <sstream>
+#include <map>
 #include "data_map.h"
 
 QT_BEGIN_NAMESPACE
@@ -32,13 +33,20 @@ private slots:
 
     void on_folderButton_clicked();
 
+    void on_YearEntry_textChanged();
+
+    void on_lookupTableButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
     Data_Map travel_time;
+    Data_Map lookup_table;
+    Data_Map smallest_map;
 
     //information variables
     int calculation_year;
+    std::map<int, Data_Map > crops_map;
     //std::vector< std::vector<int> > travel_time;
     int tt_ncols;
     int tt_nrows;

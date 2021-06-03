@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->progressBar->setHidden(true);
 }
 
 MainWindow::~MainWindow()
@@ -97,13 +98,19 @@ void MainWindow::on_TravelTimeFileButton_clicked()
         std::cout << "Found years: ";
         for(int i = 0; i < required_years.size(); i++)
         {
-            std::cout << 2019 - required_years[i] << ", ";
+            std::cout << calculation_year - required_years[i] << ", ";
         }
         std::cout << std::endl;
 
         //display travel_time information
         QString tt_info = QString(year_string + " Travel Time Stats:\nncols: %1\nnrows: %2\nxllcorner: %3\nyllcorner: %4\ncellsize: %5\nNODATA_VALUE: %6").arg(travel_time.ncols).arg(travel_time.nrows).arg(travel_time.xllcorner).arg(travel_time.yllcorner).arg(travel_time.cellsize).arg(travel_time.NODATA_VALUE);
+        tt_info = tt_info + "\nCrop Maps for Years below are required: \n";
+        for(int i : required_years)
+        {
+            tt_info = tt_info + QString::number(calculation_year - i) + "\n";
+        }
         ui->textBrowser->setText(tt_info);
+
     }
     else
     {
@@ -118,18 +125,68 @@ void MainWindow::on_folderButton_clicked()
 {
     QStringList files;
     files.append(QFileDialog::getOpenFileNames(this, "Select one or more .csv files to open", "/home", ".CSV File (*.csv)"));
-
+    ui->progressBar->setValue(0);
+    ui->progressBar->setHidden(false);
     QString my_text;
-    for(QString path : files)
+    for(int i = 0; i < files.size(); i++)
     {
+        double my_progress = ((double)i / files.size() * 100);
+        std::cout << "Setting bar to " << my_progress << std::endl;
+        ui->progressBar->setValue(my_progress);
+        QString path = files[i];
         my_text = my_text + "\n" + path;
+        QFileInfo file_info = QFileInfo(files[i]);
+        //std::cout << "File name: " << file_info.fileName().toUtf8().constData() << std::endl;
+        std::stringstream ss;
+        ss << file_info.fileName().toUtf8().constData();
+        int num;
+        ss >> num;
+        std::cout << "Making entry for year " << num << std::endl;
+        crops_map[num] = Data_Map(path.toUtf8().constData());
+        crops_map[num].gather_variables();
+        crops_map[num].string_to_int(crops_map[num].string_map, 6);
     }
     ui->textBrowser->setText(my_text);
-    QFileInfo file_info = QFileInfo(files[0]);
-    std::cout << "File name: " << file_info.fileName().toUtf8().constData() << std::endl;
-    std::stringstream ss;
-    ss << file_info.fileName().toUtf8().constData();
-    int num;
-    ss >> num;
-    std::cout << "Integer for this file's year: " << num << std::endl;
+
+    //verify which years still need entries
+    QString found_output = QString("Loaded files!");
+    for(int i : required_years)
+    {
+        if(crops_map.count(calculation_year - i ) == 0)
+        {
+            found_output = found_output + "\nStill need map for year " + QString::number(calculation_year - i);
+        }
+        else if (crops_map.count(calculation_year - i ) == 1)
+        {
+            found_output = found_output + "\nFound map for year " + QString::number(calculation_year - i);
+        }
+    }
+    ui->textBrowser->setText(found_output);
+    ui->progressBar->setHidden(true);
+
+}
+
+void MainWindow::on_YearEntry_textChanged()
+{
+    //sets the calculation year without relying on loading a new travel time file
+    calculation_year = ui->YearEntry->toPlainText().toInt();
+    std::cout << "New calculation year set: " << calculation_year << std::endl;
+}
+
+void MainWindow::on_lookupTableButton_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, "Open the crop lookup table", "/home", ".CSV (*.csv)");
+    lookup_table = Data_Map(filepath.toUtf8().constData());
+    std::cout << "Length of first row is " << lookup_table.string_map[0].size() << std::endl;
+    if(lookup_table.string_map[0].size() == 3)
+    {
+        std::string temp = "Lookup Table First Row: \n" + lookup_table.string_map[0][0] + ", " + lookup_table.string_map[0][1] + ", " + lookup_table.string_map[0][2];
+        ui->textBrowser->setText(QString::fromStdString(temp));
+    }
+    else
+    {
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Error reading Lookup Table. Please try again.");
+        messageBox.setFixedSize(500,200);
+    }
 }

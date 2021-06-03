@@ -21,7 +21,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>0</y>
+      <y>-50</y>
       <width>721</width>
       <height>141</height>
      </rect>
@@ -46,7 +46,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>90</y>
+      <y>40</y>
       <width>211</width>
       <height>61</height>
      </rect>
@@ -66,7 +66,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>160</y>
+      <y>110</y>
       <width>231</width>
       <height>51</height>
      </rect>
@@ -79,9 +79,9 @@
     <property name="geometry">
      <rect>
       <x>310</x>
-      <y>120</y>
+      <y>70</y>
       <width>451</width>
-      <height>391</height>
+      <height>501</height>
      </rect>
     </property>
     <property name="placeholderText">
@@ -92,7 +92,7 @@
     <property name="geometry">
      <rect>
       <x>310</x>
-      <y>90</y>
+      <y>40</y>
       <width>451</width>
       <height>23</height>
      </rect>
@@ -108,16 +108,29 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>220</y>
+      <y>250</y>
       <width>231</width>
       <height>61</height>
      </rect>
     </property>
     <property name="text">
-     <string>Open Containing Folder</string>
+     <string>Open Crop Maps</string>
     </property>
     <property name="checkable">
      <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="lookupTableButton">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>180</y>
+      <width>231</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Open Lookup Table</string>
     </property>
    </widget>
   </widget>
