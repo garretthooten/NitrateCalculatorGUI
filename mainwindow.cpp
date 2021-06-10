@@ -59,6 +59,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->progressBar->setHidden(true);
+    smallest_map = Data_Map();
+    smallest_map.ncols = 0;
+    smallest_map.nrows = 0;
 }
 
 MainWindow::~MainWindow()
@@ -145,7 +148,17 @@ void MainWindow::on_folderButton_clicked()
         crops_map[num] = Data_Map(path.toUtf8().constData());
         crops_map[num].gather_variables();
         crops_map[num].string_to_int(crops_map[num].string_map, 6);
+        if(i == 0)
+        {
+            smallest_map = crops_map[num];
+        }
+        if((smallest_map.ncols * smallest_map.nrows) > (crops_map[num].nrows * crops_map[num].ncols))
+        {
+            std::cout << "Found new smallest map! " << num;
+            smallest_map = crops_map[num];
+        }
     }
+    std::cout << "Smallest map ncols: " << smallest_map.ncols << ", nrows: " << smallest_map.nrows << std::endl;
     ui->textBrowser->setText(my_text);
 
     //verify which years still need entries
@@ -189,4 +202,11 @@ void MainWindow::on_lookupTableButton_clicked()
         messageBox.critical(0,"Error","Error reading Lookup Table. Please try again.");
         messageBox.setFixedSize(500,200);
     }
+}
+
+void MainWindow::on_calculate_button_clicked()
+{
+    QString filepath = QFileDialog::getSaveFileName(this, "Choose where to save the new map", "new_map.csv", ".CSV (*.csv)");
+    std::string string_filepath = filepath.toUtf8().constData();
+    std::cout << "Save location is: " << string_filepath << std::endl;
 }

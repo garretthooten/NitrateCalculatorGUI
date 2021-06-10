@@ -37,6 +37,8 @@ private slots:
 
     void on_lookupTableButton_clicked();
 
+    void on_calculate_button_clicked();
+
 private:
     Ui::MainWindow *ui;
 
