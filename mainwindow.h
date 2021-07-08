@@ -39,17 +39,25 @@ private slots:
 
     void on_calculate_button_clicked();
 
+    void on_recharge_button_clicked();
+
 private:
     Ui::MainWindow *ui;
+
+    float sum_of_MgN;
+    float sum_of_volumes;
+    float sum_of_ft_cubed;
 
     Data_Map travel_time;
     Data_Map lookup_table;
     Data_Map smallest_map;
+    Data_Map recharge_map;
 
     //information variables
     int calculation_year;
     std::map<int, Data_Map > crops_map;
     //std::vector< std::vector<int> > travel_time;
+    //std::vector< std::vector<float> > calculate_concentration(std::vector< std::vector<std::string> > lookup, vector<vector>);
     int tt_ncols;
     int tt_nrows;
     double tt_xllcorner;

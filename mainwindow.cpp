@@ -209,4 +209,65 @@ void MainWindow::on_calculate_button_clicked()
     QString filepath = QFileDialog::getSaveFileName(this, "Choose where to save the new map", "new_map.csv", ".CSV (*.csv)");
     std::string string_filepath = filepath.toUtf8().constData();
     std::cout << "Save location is: " << string_filepath << std::endl;
+
+    std::cout << "Creating output file with calculated values" << std::endl;
+    std::vector< std::vector<float> > ret;
+    int crop_value;
+    int temp;
+
+    //calculating new map
+    for(int i = 0; i < travel_time.int_map.size(); i++)
+    {
+        std::vector<float> inside_temp;
+        for(int j = 0; j < travel_time.int_map[i].size(); j++)
+        {
+            temp = travel_time.int_map[i][j];
+            if(temp != NODATA_VALUE)
+            {
+                crop_value = crops_map[calculation_year - temp].int_map[i][j];
+                if((crop_value != NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3))
+                {
+                    //temporary area
+                    float area = smallest_map.cellsize * smallest_map.cellsize;
+                    float ft_cubed_per_day = (recharge_map.float_map[i][j] * 0.0254 * area * 35.3147) / 365;
+                    int concentration = std::stoi(lookup_table.string_map[crop_value][2]);
+                    float volume = (recharge_map.float_map[i][j] * area) / 1000;
+                    float mg_nitrate = ft_cubed_per_day * 3.78541 * concentration;
+                    float num = volume * concentration;
+
+                    sum_of_MgN += mg_nitrate;
+                    sum_of_volumes += volume;
+                    sum_of_ft_cubed += ft_cubed_per_day;
+
+                    inside_temp.push_back(mg_nitrate);
+                }
+                else
+                {
+                    inside_temp.push_back(NODATA_VALUE);
+                }
+            }
+            else
+            {
+                inside_temp.push_back(NODATA_VALUE);
+            }
+        }
+        ret.push_back(inside_temp);
+    }
+
+    //converting new map to a string
+    std::string return_string;
+    return_string += "ncols, ";
+}
+
+void MainWindow::on_recharge_button_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, "Open the recharge map", "/home", ".CSV (*.csv)");
+    recharge_map = Data_Map(filepath.toUtf8().constData());
+    if(recharge_map.string_map.size() > 0)
+    {
+        recharge_map.gather_variables();
+        recharge_map.float_map = Data_Map::string_to_float(lookup_table.string_map, 6);
+        std::string temp = "Recharge map loaded!\nNcols: " + std::to_string(recharge_map.ncols) + "\nNrows: " + std::to_string(recharge_map.nrows);
+        ui->textBrowser->setText(QString::fromStdString(temp));
+    }
 }

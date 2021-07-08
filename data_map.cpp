@@ -52,6 +52,22 @@ std::vector< std::vector<int> > Data_Map::string_to_int(std::vector< std::vector
     return return_vector;
 }
 
+std::vector< std::vector<float> > Data_Map::string_to_float(std::vector< std::vector<std::string> > string_CSV, int starting_value)
+{
+    std::vector< std::vector<float> > return_vector;
+    for(int i = starting_value; i < string_CSV.size(); i++)
+    {
+        std::vector<float> temp_row;
+        for(int j = 0; j < string_CSV[i].size(); j++)
+        {
+            std::cout << "converting item " << string_CSV[i][j] << std::endl;
+            temp_row.push_back(std::stof(string_CSV[i][j]));
+        }
+        return_vector.push_back(temp_row);
+    }
+    return return_vector;
+}
+
 void Data_Map::gather_variables()
 {
     std::cout << string_map[1][0] << std::endl;
