@@ -73,52 +73,63 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_TravelTimeFileButton_clicked()
 {
-    QString year_string = ui->YearEntry->toPlainText();
-    calculation_year = year_string.toInt();
-    //parse travel time csv
-    QString tt_filepath = QFileDialog::getOpenFileName(this, "Open a travel time .csv", "/home", ".CSV (*.csv)");
-    travel_time = Data_Map(tt_filepath.toUtf8().constData());
-    travel_time.gather_variables();
-    travel_time.int_map = Data_Map::string_to_int(travel_time.string_map, 6);
-
-    if(travel_time.string_map.size() > 0)
+    try
     {
-
-        std::cout << "Expected rows: " << travel_time.nrows << "Actual rows: " << travel_time.int_map.size() << "\nExpected Columns: " << travel_time.ncols << " Actual columns: " << travel_time.int_map[0].size() << std::endl;
-
-        //search for years
-        for(int i = 0; i < travel_time.int_map.size(); i++)
+        QString year_string = ui->YearEntry->toPlainText();
+        calculation_year = year_string.toInt();
+        //parse travel time csv
+        QString tt_filepath = QFileDialog::getOpenFileName(this, "Open a travel time .csv", "/home", ".CSV (*.csv)");
+        travel_time = Data_Map(tt_filepath.toUtf8().constData());
+        if(travel_time.successfully_created)
         {
-            for(int j = 0; j < travel_time.int_map[i].size(); j++)
+            travel_time.gather_variables();
+            travel_time.int_map = Data_Map::string_to_int(travel_time.string_map, 6);
+
+            if(travel_time.string_map.size() > 0)
             {
-                if(std::count(required_years.begin(), required_years.end(), travel_time.int_map[i][j]) == 0 && travel_time.int_map[i][j] != travel_time.NODATA_VALUE)
+
+                std::cout << "Expected rows: " << travel_time.nrows << "Actual rows: " << travel_time.int_map.size() << "\nExpected Columns: " << travel_time.ncols << " Actual columns: " << travel_time.int_map[0].size() << std::endl;
+
+                //search for years
+                for(int i = 0; i < travel_time.int_map.size(); i++)
                 {
-                    required_years.push_back(travel_time.int_map[i][j]);
+                    for(int j = 0; j < travel_time.int_map[i].size(); j++)
+                    {
+                        if(std::count(required_years.begin(), required_years.end(), travel_time.int_map[i][j]) == 0 && travel_time.int_map[i][j] != travel_time.NODATA_VALUE)
+                        {
+                            required_years.push_back(travel_time.int_map[i][j]);
+                        }
+                    }
                 }
+                std::sort(required_years.begin(), required_years.end());
+                std::cout << "Found years: ";
+                for(int i = 0; i < required_years.size(); i++)
+                {
+                    std::cout << calculation_year - required_years[i] << ", ";
+                }
+                std::cout << std::endl;
+
+                //display travel_time information
+                QString tt_info = QString(year_string + " Travel Time Stats:\nncols: %1\nnrows: %2\nxllcorner: %3\nyllcorner: %4\ncellsize: %5\nNODATA_VALUE: %6").arg(travel_time.ncols).arg(travel_time.nrows).arg(travel_time.xllcorner).arg(travel_time.yllcorner).arg(travel_time.cellsize).arg(travel_time.NODATA_VALUE);
+                tt_info = tt_info + "\nCrop Maps for Years below are required: \n";
+                for(int i : required_years)
+                {
+                    tt_info = tt_info + QString::number(calculation_year - i) + "\n";
+                }
+                ui->textBrowser->setText(tt_info);
+
             }
         }
-        std::sort(required_years.begin(), required_years.end());
-        std::cout << "Found years: ";
-        for(int i = 0; i < required_years.size(); i++)
+        else
         {
-            std::cout << calculation_year - required_years[i] << ", ";
+            std::cout << "Travel time was not successfully created!" << std::endl;
         }
-        std::cout << std::endl;
-
-        //display travel_time information
-        QString tt_info = QString(year_string + " Travel Time Stats:\nncols: %1\nnrows: %2\nxllcorner: %3\nyllcorner: %4\ncellsize: %5\nNODATA_VALUE: %6").arg(travel_time.ncols).arg(travel_time.nrows).arg(travel_time.xllcorner).arg(travel_time.yllcorner).arg(travel_time.cellsize).arg(travel_time.NODATA_VALUE);
-        tt_info = tt_info + "\nCrop Maps for Years below are required: \n";
-        for(int i : required_years)
-        {
-            tt_info = tt_info + QString::number(calculation_year - i) + "\n";
-        }
-        ui->textBrowser->setText(tt_info);
-
     }
-    else
+    catch(std::exception &e)
     {
+        std::cout << "Error opening travel time file!" << std::endl;
         QMessageBox messageBox;
-        messageBox.critical(0,"Error","Could not read file. Please try again.");
+        messageBox.critical(0,"Error","Error reading Travel Time file. Please try again.");
         messageBox.setFixedSize(500,200);
     }
 
@@ -146,16 +157,23 @@ void MainWindow::on_folderButton_clicked()
         ss >> num;
         std::cout << "Making entry for year " << num << std::endl;
         crops_map[num] = Data_Map(path.toUtf8().constData());
-        crops_map[num].gather_variables();
-        crops_map[num].string_to_int(crops_map[num].string_map, 6);
-        if(i == 0)
+        if(crops_map[num].successfully_created)
         {
-            smallest_map = crops_map[num];
+            crops_map[num].gather_variables();
+            crops_map[num].string_to_int(crops_map[num].string_map, 6);
+            if(i == 0)
+            {
+                smallest_map = crops_map[num];
+            }
+            if((smallest_map.ncols * smallest_map.nrows) > (crops_map[num].nrows * crops_map[num].ncols))
+            {
+                std::cout << "Found new smallest map! " << num;
+                smallest_map = crops_map[num];
+            }
         }
-        if((smallest_map.ncols * smallest_map.nrows) > (crops_map[num].nrows * crops_map[num].ncols))
+        else
         {
-            std::cout << "Found new smallest map! " << num;
-            smallest_map = crops_map[num];
+            std::cout << "Could not create entry for " << num << "!" << std::endl;
         }
     }
     std::cout << "Smallest map ncols: " << smallest_map.ncols << ", nrows: " << smallest_map.nrows << std::endl;
@@ -190,11 +208,14 @@ void MainWindow::on_lookupTableButton_clicked()
 {
     QString filepath = QFileDialog::getOpenFileName(this, "Open the crop lookup table", "/home", ".CSV (*.csv)");
     lookup_table = Data_Map(filepath.toUtf8().constData());
-    std::cout << "Length of first row is " << lookup_table.string_map[0].size() << std::endl;
-    if(lookup_table.string_map[0].size() == 3)
+    if(lookup_table.successfully_created)
     {
-        std::string temp = "Lookup Table First Row: \n" + lookup_table.string_map[0][0] + ", " + lookup_table.string_map[0][1] + ", " + lookup_table.string_map[0][2];
-        ui->textBrowser->setText(QString::fromStdString(temp));
+        std::cout << "Length of first row is " << lookup_table.string_map[0].size() << std::endl;
+        if(lookup_table.string_map[0].size() == 3)
+        {
+            std::string temp = "Lookup Table First Row: \n" + lookup_table.string_map[0][0] + ", " + lookup_table.string_map[0][1] + ", " + lookup_table.string_map[0][2];
+            ui->textBrowser->setText(QString::fromStdString(temp));
+        }
     }
     else
     {
@@ -263,7 +284,7 @@ void MainWindow::on_recharge_button_clicked()
 {
     QString filepath = QFileDialog::getOpenFileName(this, "Open the recharge map", "/home", ".CSV (*.csv)");
     recharge_map = Data_Map(filepath.toUtf8().constData());
-    if(recharge_map.string_map.size() > 0)
+    if(recharge_map.successfully_created)
     {
         recharge_map.gather_variables();
         recharge_map.float_map = Data_Map::string_to_float(lookup_table.string_map, 6);

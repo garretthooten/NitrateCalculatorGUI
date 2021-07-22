@@ -28,8 +28,10 @@ public:
     Data_Map();
     Data_Map(std::string dir);
 
+    bool successfully_created = false;
+
     static bool validate_maps(std::map< int, Data_Map> map);
-    static std::vector< std::vector<std::string> > parse_CSV(std::string dir);
+    std::vector< std::vector<std::string> > parse_CSV(std::string dir);
     static std::vector< std::vector<int> > string_to_int(std::vector< std::vector<std::string> > string_CSV, int starting_value);
     static std::vector< std::vector<float> > string_to_float(std::vector< std::vector<std::string> > string_CSV, int starting_value);
     void gather_variables();

@@ -2,38 +2,52 @@
 
 std::vector< std::vector<std::string> > Data_Map::parse_CSV(std::string dir)
 {
-    std::cout << "Entering parse_CSV for " << dir << std::endl;
-    std::ifstream data;
-    data.exceptions(std::ifstream::badbit);
-    std::vector< std::vector<std::string> > parsed_string_csv;
-    bool done = false;
-    std::cout << "Opening file" << std::endl;
-    data.open(dir);
-
-    if(!data.is_open())
+    try
     {
-        QMessageBox messageBox;
-        messageBox.critical(0, "Error", "Could not open file!");
-        messageBox.setFixedSize(500,200);
-        return {};
-    }
-
-    std::cout << "File is open!" << std::endl;
-    std::string line;
-    while(std::getline(data, line))
-    {
-        std::stringstream linestream(line);
-        std::string cell;
-        std::vector<std::string> parsed_string_row;
-        while(std::getline(linestream, cell, ','))
+        std::cout << "Entering parse_CSV for " << dir << std::endl;
+        std::ifstream data;
+        data.exceptions(std::ifstream::badbit);
+        std::vector< std::vector<std::string> > parsed_string_csv;
+        bool done = false;
+        std::cout << "Opening file" << std::endl;
+        if(!dir.empty())
         {
-            parsed_string_row.push_back(cell);
+            data.open(dir);
         }
-        parsed_string_csv.push_back(parsed_string_row);
+        else
+        {
+            std::cout << "Dir was empty! Cancelling open." << std::endl;
+            return {};
+        }
+
+        if(data.is_open())
+        {
+            std::cout << "File is open!" << std::endl;
+            std::string line;
+            while(std::getline(data, line))
+            {
+                std::stringstream linestream(line);
+                std::string cell;
+                std::vector<std::string> parsed_string_row;
+                while(std::getline(linestream, cell, ','))
+                {
+                    parsed_string_row.push_back(cell);
+                }
+                parsed_string_csv.push_back(parsed_string_row);
+            }
+            std::cout << "Parsing done!" << std::endl;
+            data.close();
+            successfully_created = true;
+            return parsed_string_csv;
+        }
     }
-    std::cout << "Parsing done!" << std::endl;
-    data.close();
-    return parsed_string_csv;
+    catch(std::exception &e)
+    {
+        std::cout << "Error opening Travel Time File: " << e.what() << std::endl;
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Error reading file. Please try again.");
+        messageBox.setFixedSize(500,200);
+    }
 }
 
 std::vector< std::vector<int> > Data_Map::string_to_int(std::vector< std::vector<std::string> > string_CSV, int starting_value)
