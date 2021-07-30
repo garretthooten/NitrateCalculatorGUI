@@ -25,8 +25,6 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    std::vector< std::vector<std::string> > parse_CSV(std::string directory);
-
 private slots:
 
     void on_TravelTimeFileButton_clicked();
@@ -56,14 +54,12 @@ private:
     //information variables
     int calculation_year;
     std::map<int, Data_Map > crops_map;
-    //std::vector< std::vector<int> > travel_time;
-    //std::vector< std::vector<float> > calculate_concentration(std::vector< std::vector<std::string> > lookup, vector<vector>);
-    int tt_ncols;
-    int tt_nrows;
-    double tt_xllcorner;
-    double tt_yllcorner;
-    int tt_cellsize;
-    int NODATA_VALUE;
+    int NODATA_VALUE = -9999;
     std::vector<int> required_years;
+
+    //validate that all maps are ready to be used
+    bool validate_maps();
+
+    QString print_csv(Data_Map data);
 };
 #endif // MAINWINDOW_H

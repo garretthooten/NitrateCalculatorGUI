@@ -6,6 +6,8 @@ std::vector< std::vector<std::string> > Data_Map::parse_CSV(std::string dir)
     {
         std::cout << "Entering parse_CSV for " << dir << std::endl;
         std::ifstream data;
+        //clear buffer to avoid accidentally getting elements from last opened file
+        data.clear();
         data.exceptions(std::ifstream::badbit);
         std::vector< std::vector<std::string> > parsed_string_csv;
         bool done = false;
@@ -74,7 +76,7 @@ std::vector< std::vector<float> > Data_Map::string_to_float(std::vector< std::ve
         std::vector<float> temp_row;
         for(int j = 0; j < string_CSV[i].size(); j++)
         {
-            std::cout << "converting item " << string_CSV[i][j] << std::endl;
+            //std::cout << "converting item " << string_CSV[i][j] << std::endl;
             temp_row.push_back(std::stof(string_CSV[i][j]));
         }
         return_vector.push_back(temp_row);
