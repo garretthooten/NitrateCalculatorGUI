@@ -212,64 +212,46 @@ void MainWindow::on_TravelTimeFileButton_clicked()
 
 void MainWindow::on_folderButton_clicked()
 {
-    QStringList files;
-    files.append(QFileDialog::getOpenFileNames(this, "Select one or more .csv files to open", "/home", ".CSV File (*.csv)"));
-    ui->progressBar->setValue(0);
-    ui->progressBar->setHidden(false);
-    QString my_text;
-    for(int i = 0; i < files.size(); i++)
+    try
     {
-        double my_progress = ((double)i / files.size() * 100);
-        std::cout << "Setting bar to " << my_progress << std::endl;
-        ui->progressBar->setValue(my_progress);
-        QString path = files[i];
-        my_text = my_text + "\n" + path;
-        QFileInfo file_info = QFileInfo(files[i]);
-        //std::cout << "File name: " << file_info.fileName().toUtf8().constData() << std::endl;
-        std::stringstream ss;
-        ss << file_info.fileName().toUtf8().constData();
-        int num;
-        ss >> num;
-        std::cout << "Making entry for year " << num << std::endl;
-        crops_map[num] = Data_Map(path.toUtf8().constData());
-        if(crops_map[num].successfully_created)
+        QStringList files;
+        files.append(QFileDialog::getOpenFileNames(this, "Select one or more .csv files to open", "/home", ".CSV File (*.csv)"));
+        for(QString filepath : files)
         {
-            crops_map[num].gather_variables();
-            crops_map[num].string_to_int(crops_map[num].string_map, 6);
-            if(i == 0)
+            std::cout << "Opening " << filepath.toStdString() << std::endl;
+            QFileInfo fileinfo = QFileInfo(filepath);
+            std::stringstream ss;
+            ss << fileinfo.fileName().toStdString();
+            int num;
+            ss >> num;
+            std::cout << "This file is for year " << num << std::endl;
+
+            crops_map[num] = Data_Map(filepath.toStdString());
+            if(crops_map[num].successfully_created)
             {
-                smallest_map = crops_map[num];
-            }
-            if((smallest_map.ncols * smallest_map.nrows) > (crops_map[num].nrows * crops_map[num].ncols))
-            {
-                std::cout << "Found new smallest map! " << num;
-                smallest_map = crops_map[num];
+                crops_map[num].gather_variables();
+                crops_map[num].int_map = Data_Map::string_to_int(crops_map[num].string_map, 6);
             }
         }
-        else
+        QString found_output = QString("Loaded files!");
+        for(int i : required_years)
         {
-            std::cout << "Could not create entry for " << num << "!" << std::endl;
+            if(crops_map.count(calculation_year - i) == 0)
+            {
+                found_output = found_output + "\nStill need map for year " + QString::number(calculation_year - i);
+            }
+            else if(crops_map.count(calculation_year - i) == 1)
+            {
+                found_output = found_output + "\nFound map for year " + QString::number(calculation_year - i);
+            }
         }
-    }
-    std::cout << "Smallest map ncols: " << smallest_map.ncols << ", nrows: " << smallest_map.nrows << std::endl;
-    ui->textBrowser->setText(my_text);
+        ui->textBrowser->setText(found_output);
 
-    //verify which years still need entries
-    QString found_output = QString("Loaded files!");
-    for(int i : required_years)
+    }
+    catch(std::exception &e)
     {
-        if(crops_map.count(calculation_year - i ) == 0)
-        {
-            found_output = found_output + "\nStill need map for year " + QString::number(calculation_year - i);
-        }
-        else if (crops_map.count(calculation_year - i ) == 1)
-        {
-            found_output = found_output + "\nFound map for year " + QString::number(calculation_year - i);
-        }
+        std::cout << "Error in folderbutton! " << e.what();
     }
-    ui->textBrowser->setText(found_output);
-    ui->progressBar->setHidden(true);
-
 }
 
 void MainWindow::on_YearEntry_textChanged()
@@ -416,11 +398,70 @@ void MainWindow::on_calculate_button_clicked()
             }
 
             //writing final_map out to file
+            /*
             std::cout << "Beginning write to path " << string_filepath << std::endl;
             std::ofstream file(string_filepath);
             file << final_map;
             std::cout << "Finished writing to file! Closing!" << std::endl;
             file.close();
+            QString test_map = QString::fromStdString(final_map);
+            ui->textBrowser->setText(test_map);
+            */
+
+            std::ofstream file(string_filepath);
+            file << "ncols" << divider << smallest_map.ncols << divider;
+            for(int i = 0; i < ret[0].size(); i++)
+            {
+                file << divider;
+            }
+            file << std::endl;
+
+            file << "nrows" << divider << smallest_map.nrows << divider;
+            for(int i = 0; i < ret[0].size(); i++)
+            {
+                file << divider;
+            }
+            file << std::endl;
+
+            file << "xllcorner" << divider << smallest_map.xllcorner << divider;
+            for(int i = 0; i < ret[0].size(); i++)
+            {
+                file << divider;
+            }
+            file << std::endl;
+
+            file << "yllcorner" << divider << smallest_map.yllcorner << divider;
+            for(int i = 0; i < ret[0].size(); i++)
+            {
+                file << divider;
+            }
+            file << std::endl;
+
+            file << "cellsize" << divider << smallest_map.cellsize << divider;
+            for(int i = 0; i < ret[0].size(); i++)
+            {
+                file << divider;
+            }
+            file << std::endl;
+
+            file << "NODATA_VALUE" << divider << smallest_map.NODATA_VALUE << divider;
+            for(int i = 0; i < ret[0].size(); i++)
+            {
+                file << divider;
+            }
+            file << std::endl;
+
+            for(int i = 0; i < ret.size(); i++)
+            {
+                for(int j = 0; j < ret[i].size(); j++)
+                {
+                    file << ret[i][j] << divider;
+                }
+                file << std::endl;
+            }
+
+            file.close();
+
         }
         else
         {
@@ -466,5 +507,27 @@ void MainWindow::on_recharge_button_clicked()
         QMessageBox messageBox;
         messageBox.critical(0,"Error","Error reading recharge map file. Please try again.");
         messageBox.setFixedSize(500,200);
+    }
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    try
+    {
+        QString filepath = QFileDialog::getOpenFileName(this, "Open the crop recharge map", "/home", ".CSV (*.csv)");
+        Data_Map temp_data = Data_Map(filepath.toUtf8().constData());
+        if(temp_data.successfully_created)
+        {
+            temp_data.gather_variables();
+            temp_data.int_map = Data_Map::string_to_int(temp_data.string_map, 6);
+            ui->textBrowser->setText(print_csv(temp_data));
+            std::cout << "Adding this map to crops data and reading from there" << std::endl;
+            crops_map[1] = temp_data;
+            ui->textBrowser->setText(print_csv(crops_map[1]));
+        }
+    }
+    catch(std::exception &e)
+    {
+        std::cout << "Exception caught in pushbuton! " << e.what() << std::endl;
     }
 }
