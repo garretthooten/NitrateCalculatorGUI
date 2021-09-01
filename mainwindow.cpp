@@ -17,6 +17,72 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+bool MainWindow::match_dimensions(Data_Map map, Data_Map small_map)
+{
+    if(map.xllcorner != small_map.xllcorner || map.yllcorner != small_map.yllcorner || map.nrows != small_map.nrows || map.ncols != small_map.ncols)
+    {
+        return false;
+    }
+    return true;
+}
+
+//shrinking maps to smallest map's size -- used in calculation final step
+std::vector< std::vector<int> > MainWindow::shrink_map(Data_Map map)
+{
+    int x_spacer, y_spacer;
+
+    x_spacer = (smallest_map.xllcorner - map.xllcorner) / smallest_map.cellsize;
+    y_spacer = (smallest_map.yllcorner - map.yllcorner) / smallest_map.cellsize;
+
+    std::vector< std::vector<int> > ret_vector;
+
+    for(int i = 0; i < smallest_map.nrows; i++)
+    {
+        std::vector<int> temp_row;
+        for(int j = 0; j < smallest_map.ncols; j++)
+        {
+            temp_row.push_back(map.int_map[i + x_spacer][j + y_spacer]);
+        }
+        ret_vector.push_back(temp_row);
+    }
+    return ret_vector;
+}
+
+std::vector< std::vector<float> > MainWindow::shrink_map_float(Data_Map map)
+{
+    try
+    {
+        int x_spacer, y_spacer;
+
+        x_spacer = (smallest_map.xllcorner - map.xllcorner) / smallest_map.cellsize;
+        y_spacer = (smallest_map.yllcorner - map.yllcorner) / smallest_map.cellsize;
+
+        std::vector< std::vector<float> > ret_vector;
+
+        std::cout << "x_spacer: " << x_spacer << "\ny_spacer: " << y_spacer << std::endl;
+
+        for(int i = 0; i < smallest_map.nrows; i++)
+        {
+            std::vector<float> temp_row;
+            for(int j = 0; j < smallest_map.ncols; j++)
+            {
+                std::cout << "pushing back " << i+x_spacer << ", " << j+y_spacer << std::endl;
+                temp_row.push_back(map.float_map[i + x_spacer][j + y_spacer]);
+            }
+            ret_vector.push_back(temp_row);
+        }
+        std::cout << "exiting shrink_map_float" << std::endl;
+        return ret_vector;
+    }
+    catch(std::exception &e)
+    {
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Error in shrink_map_float! " + QString(e.what()));
+        messageBox.setFixedSize(500,200);
+    }
+}
+
 //for printing csv's to the text preview window
 QString MainWindow::print_csv(Data_Map data)
 {
@@ -125,13 +191,25 @@ bool MainWindow::validate_maps()
                 messageBox.setFixedSize(500,200);
                 return false;
             }
-            if(current_area < smallest_area)
+            if(current_area != smallest_area)
             {
+                all_maps_same_size = false;
+
                 //if the current map is smaller, set smallest_map to this map!
-                smallest_area = current_area;
-                smallest_map = current_map;
+                if(current_area < smallest_area)
+                {
+                    smallest_area = current_area;
+                    smallest_map = current_map;
+                }
             }
         }
+
+        if((recharge_map.ncols * recharge_map.nrows) < smallest_area)
+        {
+            smallest_map = recharge_map;
+            smallest_area = (recharge_map.ncols * recharge_map.nrows);
+        }
+
         std::cout << "Smallest map ncols: " << smallest_map.ncols << " nrows: " << smallest_map.nrows << std::endl;
         return true;
 
@@ -305,21 +383,23 @@ void MainWindow::on_calculate_button_clicked()
             int crop_value;
             int temp;
 
+
+
             //calculating new map
             for(int i = 0; i < travel_time.int_map.size(); i++)
             {
-                std::cout << "Made it to outermost for loop!" << std::endl;
+                //std::cout << "Made it to outermost for loop!" << std::endl;
                 std::vector<float> inside_temp;
                 for(int j = 0; j < travel_time.int_map[i].size(); j++)
                 {
                     temp = travel_time.int_map[i][j];
-                    std::cout << "Made it to for loop 1! temp is " << temp << std::endl;
+                    //std::cout << "Made it to for loop 1! temp is " << temp << std::endl;
                     if(temp != NODATA_VALUE)
                     {
-                        std::cout << "Accessing crop map for " << calculation_year - temp << std::endl;
-                        std::cout << "First value for this map is " << crops_map[calculation_year - temp].int_map[0][0] << std::endl;
+                        //std::cout << "Accessing crop map for " << calculation_year - temp << std::endl;
+                        //std::cout << "First value for this map is " << crops_map[calculation_year - temp].int_map[0][0] << std::endl;
                         crop_value = crops_map[calculation_year - temp].int_map[i][j];
-                        std::cout << "Crop value is: " << crop_value << std::endl;
+                        //std::cout << "Crop value is: " << crop_value << std::endl;
                         if((crop_value != NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3))
                         {
                             //temporary area
@@ -334,7 +414,7 @@ void MainWindow::on_calculate_button_clicked()
                             sum_of_volumes += volume;
                             sum_of_ft_cubed += ft_cubed_per_day;
 
-                            std::cout << "Pushing back " << mg_nitrate << std::endl;
+                            //std::cout << "Pushing back " << mg_nitrate << std::endl;
                             inside_temp.push_back(mg_nitrate);
                         }
                         else
@@ -349,6 +429,58 @@ void MainWindow::on_calculate_button_clicked()
                 }
                 ret.push_back(inside_temp);
             }
+
+            //making new collection of maps
+            std::cout << "all_maps_same_size: " << all_maps_same_size << std::endl;
+            if(!all_maps_same_size)
+            {
+                QString progress = QString("Beginning Calculation!");
+                std::cout << "shrink step 1" << std::endl;
+                ui->textBrowser->setText(progress);
+                std::vector< std::vector<int> > shrunk_traveltime;
+                if(!match_dimensions(travel_time, smallest_map))
+                {
+                    std::cout << "shrink step 2" << std::endl;
+                    progress += "\nTravel time does not match smallest map, updating...";
+                    ui->textBrowser->setText(progress);
+                    shrunk_traveltime = shrink_map(travel_time);
+                    std::cout << "smallest map dimensions: " << smallest_map.nrows << " x " << smallest_map.ncols << " shrunk_traveltime dimensions: " << shrunk_traveltime.size() << " x " << shrunk_traveltime[0].size() << std::endl;
+                }
+                std::vector< std::vector<float> > shrunk_recharge;
+                if(!match_dimensions(recharge_map, smallest_map))
+                {
+                    std::cout << "shrink step 3" << std::endl;
+                    progress += "\nRecharge map does not match smallest map, updating...";
+                    ui->textBrowser->setText(progress);
+                    shrunk_recharge = shrink_map_float(recharge_map);
+                    std::cout << "smallest map dimensions: " << smallest_map.nrows << " x " << smallest_map.ncols << " shrunk_traveltime dimensions: " << shrunk_recharge.size() << " x " << shrunk_recharge[0].size() << std::endl;
+                }
+
+                std::cout <<"shrink step 4" << std::endl;
+                std::map<int, std::vector< std::vector<int> > > shrunk_crops_map;
+                std::map<int, Data_Map>::iterator it;
+                for(it = crops_map.begin(); it != crops_map.end(); it++)
+                {
+                    std::cout << "shrink step 5" << std::endl;
+                    Data_Map current_map = it->second;
+                    if(!match_dimensions(current_map, smallest_map))
+                    {
+                        std::cout << "shrink step 6" << std::endl;
+                        progress += "\n" + QString::number(it->first) + " map does not match smallest map, updating...";
+                        shrunk_crops_map[it->first] = shrink_map(current_map);
+                    }
+                    else
+                    {
+                        std::cout << "shrink step 7" << std::endl;
+                        shrunk_crops_map[it->first] = current_map.int_map;
+                    }
+                }
+
+                progress += "\nAll maps should be correct dimensions!";
+                ui->textBrowser->setText(progress);
+
+            }
+
 
             std::cout << "Made it outside of calculation!" << std::endl;
 
@@ -386,27 +518,6 @@ void MainWindow::on_calculate_button_clicked()
             for(int i = 2; i < ret[0].size(); i++)
                 final_map += divider;
             final_map + "\n";
-
-            //adding actual map to string
-            for(int i = 0; i < ret.size(); i++)
-            {
-                for(int j = 0; j < ret[i].size(); j++)
-                {
-                    final_map += std::to_string(ret[i][j]) + divider;
-                }
-                final_map += "\n";
-            }
-
-            //writing final_map out to file
-            /*
-            std::cout << "Beginning write to path " << string_filepath << std::endl;
-            std::ofstream file(string_filepath);
-            file << final_map;
-            std::cout << "Finished writing to file! Closing!" << std::endl;
-            file.close();
-            QString test_map = QString::fromStdString(final_map);
-            ui->textBrowser->setText(test_map);
-            */
 
             std::ofstream file(string_filepath);
             file << "ncols" << divider << smallest_map.ncols << divider;
