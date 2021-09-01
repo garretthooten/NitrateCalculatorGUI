@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->progressBar->setHidden(true);
+    this->setWindowTitle("Nitrate Calculator");
     smallest_map = Data_Map();
     smallest_map.ncols = 0;
     smallest_map.nrows = 0;
@@ -60,19 +61,15 @@ std::vector< std::vector<float> > MainWindow::shrink_map_float(Data_Map map)
 
         std::vector< std::vector<float> > ret_vector;
 
-        std::cout << "x_spacer: " << x_spacer << "\ny_spacer: " << y_spacer << std::endl;
-
         for(int i = 0; i < smallest_map.nrows; i++)
         {
             std::vector<float> temp_row;
             for(int j = 0; j < smallest_map.ncols; j++)
             {
-                std::cout << "pushing back " << i+x_spacer << ", " << j+y_spacer << std::endl;
                 temp_row.push_back(map.float_map[i + x_spacer][j + y_spacer]);
             }
             ret_vector.push_back(temp_row);
         }
-        std::cout << "exiting shrink_map_float" << std::endl;
         return ret_vector;
     }
     catch(std::exception &e)
@@ -383,57 +380,60 @@ void MainWindow::on_calculate_button_clicked()
             int crop_value;
             int temp;
 
-
-
-            //calculating new map
-            for(int i = 0; i < travel_time.int_map.size(); i++)
+            std::cout << "all_maps_same_size: " << all_maps_same_size << std::endl;
+            if(all_maps_same_size)
             {
-                //std::cout << "Made it to outermost for loop!" << std::endl;
-                std::vector<float> inside_temp;
-                for(int j = 0; j < travel_time.int_map[i].size(); j++)
+                std::cout << "All maps are the same size! Calculating normally..." << std::endl;
+                //calculating new map
+                for(int i = 0; i < travel_time.int_map.size(); i++)
                 {
-                    temp = travel_time.int_map[i][j];
-                    //std::cout << "Made it to for loop 1! temp is " << temp << std::endl;
-                    if(temp != NODATA_VALUE)
+                    //std::cout << "Made it to outermost for loop!" << std::endl;
+                    std::vector<float> inside_temp;
+                    for(int j = 0; j < travel_time.int_map[i].size(); j++)
                     {
-                        //std::cout << "Accessing crop map for " << calculation_year - temp << std::endl;
-                        //std::cout << "First value for this map is " << crops_map[calculation_year - temp].int_map[0][0] << std::endl;
-                        crop_value = crops_map[calculation_year - temp].int_map[i][j];
-                        //std::cout << "Crop value is: " << crop_value << std::endl;
-                        if((crop_value != NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3))
+                        temp = travel_time.int_map[i][j];
+                        //std::cout << "Made it to for loop 1! temp is " << temp << std::endl;
+                        if(temp != NODATA_VALUE)
                         {
-                            //temporary area
-                            float area = smallest_map.cellsize * smallest_map.cellsize;
-                            float ft_cubed_per_day = (recharge_map.float_map[i][j] * 0.0254 * area * 35.3147) / 365;
-                            int concentration = std::stoi(lookup_table.string_map[crop_value][2]);
-                            float volume = (recharge_map.float_map[i][j] * area) / 1000;
-                            float mg_nitrate = ft_cubed_per_day * 3.78541 * concentration;
-                            float num = volume * concentration;
+                            //std::cout << "Accessing crop map for " << calculation_year - temp << std::endl;
+                            //std::cout << "First value for this map is " << crops_map[calculation_year - temp].int_map[0][0] << std::endl;
+                            crop_value = crops_map[calculation_year - temp].int_map[i][j];
+                            //std::cout << "Crop value is: " << crop_value << std::endl;
+                            if((crop_value != NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3))
+                            {
+                                //temporary area
+                                float area = smallest_map.cellsize * smallest_map.cellsize;
+                                float ft_cubed_per_day = (recharge_map.float_map[i][j] * 0.0254 * area * 35.3147) / 365;
+                                int concentration = std::stoi(lookup_table.string_map[crop_value][2]);
+                                float volume = (recharge_map.float_map[i][j] * area) / 1000;
+                                float mg_nitrate = ft_cubed_per_day * 3.78541 * concentration;
+                                float num = volume * concentration;
 
-                            sum_of_MgN += mg_nitrate;
-                            sum_of_volumes += volume;
-                            sum_of_ft_cubed += ft_cubed_per_day;
+                                sum_of_MgN += mg_nitrate;
+                                sum_of_volumes += volume;
+                                sum_of_ft_cubed += ft_cubed_per_day;
 
-                            //std::cout << "Pushing back " << mg_nitrate << std::endl;
-                            inside_temp.push_back(mg_nitrate);
+                                //std::cout << "Pushing back " << mg_nitrate << std::endl;
+                                inside_temp.push_back(mg_nitrate);
+                            }
+                            else
+                            {
+                                inside_temp.push_back(NODATA_VALUE);
+                            }
                         }
                         else
                         {
                             inside_temp.push_back(NODATA_VALUE);
                         }
                     }
-                    else
-                    {
-                        inside_temp.push_back(NODATA_VALUE);
-                    }
+                    ret.push_back(inside_temp);
                 }
-                ret.push_back(inside_temp);
             }
 
             //making new collection of maps
-            std::cout << "all_maps_same_size: " << all_maps_same_size << std::endl;
-            if(!all_maps_same_size)
+            else if(!all_maps_same_size)
             {
+                std::cout << "Not all maps are the same size! Resizing then calculating..." << std::endl;
                 QString progress = QString("Beginning Calculation!");
                 std::cout << "shrink step 1" << std::endl;
                 ui->textBrowser->setText(progress);
@@ -475,9 +475,56 @@ void MainWindow::on_calculate_button_clicked()
                         shrunk_crops_map[it->first] = current_map.int_map;
                     }
                 }
+                std::cout << "shrink complete" << std::endl;
+                std::cout << "shrunk_tt size: " << shrunk_traveltime.size() << " x " << shrunk_traveltime[0].size() << "\nshrunk_tt[12][12]: " << shrunk_traveltime[12][12] << std::endl;
 
-                progress += "\nAll maps should be correct dimensions!";
+                progress += "\nAll maps should be correct dimensions! Calculating...";
                 ui->textBrowser->setText(progress);
+
+                //performing calculation
+                for(int i = 0; i < smallest_map.int_map.size(); i++)
+                {
+                    std::cout << "Made it to outermost for loop!" << std::endl;
+                    std::vector<float> inside_temp;
+                    for(int j = 0; j < smallest_map.int_map[i].size(); j++)
+                    {
+                        temp = shrunk_traveltime[i][j];
+                        std::cout << "Made it to for loop 1! temp is " << temp << std::endl;
+                        if(temp != NODATA_VALUE)
+                        {
+                            std::cout << "Accessing crop map for " << calculation_year - temp << std::endl;
+                            std::cout << "First value for this map is " << crops_map[calculation_year - temp].int_map[0][0] << std::endl;
+                            crop_value = shrunk_crops_map[calculation_year - temp][i][j];
+                            std::cout << "Crop value is: " << crop_value << std::endl;
+                            if((crop_value != NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3))
+                            {
+                                //temporary area
+                                float area = smallest_map.cellsize * smallest_map.cellsize;
+                                float ft_cubed_per_day = (shrunk_recharge[i][j] * 0.0254 * area * 35.3147) / 365;
+                                int concentration = std::stoi(lookup_table.string_map[crop_value][2]);
+                                float volume = (shrunk_recharge[i][j] * area) / 1000;
+                                float mg_nitrate = ft_cubed_per_day * 3.78541 * concentration;
+                                float num = volume * concentration;
+
+                                sum_of_MgN += mg_nitrate;
+                                sum_of_volumes += volume;
+                                sum_of_ft_cubed += ft_cubed_per_day;
+
+                                //std::cout << "Pushing back " << mg_nitrate << std::endl;
+                                inside_temp.push_back(mg_nitrate);
+                            }
+                            else
+                            {
+                                inside_temp.push_back(NODATA_VALUE);
+                            }
+                        }
+                        else
+                        {
+                            inside_temp.push_back(NODATA_VALUE);
+                        }
+                    }
+                    ret.push_back(inside_temp);
+                }
 
             }
 
@@ -573,6 +620,8 @@ void MainWindow::on_calculate_button_clicked()
 
             file.close();
 
+            ui->textBrowser->setText(QString("Calculation finished! File written to ") + QString(filepath));
+
         }
         else
         {
@@ -618,27 +667,5 @@ void MainWindow::on_recharge_button_clicked()
         QMessageBox messageBox;
         messageBox.critical(0,"Error","Error reading recharge map file. Please try again.");
         messageBox.setFixedSize(500,200);
-    }
-}
-
-void MainWindow::on_pushButton_clicked()
-{
-    try
-    {
-        QString filepath = QFileDialog::getOpenFileName(this, "Open the crop recharge map", "/home", ".CSV (*.csv)");
-        Data_Map temp_data = Data_Map(filepath.toUtf8().constData());
-        if(temp_data.successfully_created)
-        {
-            temp_data.gather_variables();
-            temp_data.int_map = Data_Map::string_to_int(temp_data.string_map, 6);
-            ui->textBrowser->setText(print_csv(temp_data));
-            std::cout << "Adding this map to crops data and reading from there" << std::endl;
-            crops_map[1] = temp_data;
-            ui->textBrowser->setText(print_csv(crops_map[1]));
-        }
-    }
-    catch(std::exception &e)
-    {
-        std::cout << "Exception caught in pushbuton! " << e.what() << std::endl;
     }
 }
