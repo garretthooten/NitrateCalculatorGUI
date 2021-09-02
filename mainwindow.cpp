@@ -43,6 +43,7 @@ std::vector< std::vector<int> > MainWindow::shrink_map(Data_Map map)
         std::vector<int> temp_row;
         for(int j = 0; j < smallest_map.ncols; j++)
         {
+            std::cout << "Pushing back " << map.int_map[i+x_spacer][j+y_spacer] << std::endl;
             temp_row.push_back(map.int_map[i + x_spacer][j + y_spacer]);
         }
         ret_vector.push_back(temp_row);
@@ -667,5 +668,30 @@ void MainWindow::on_recharge_button_clicked()
         QMessageBox messageBox;
         messageBox.critical(0,"Error","Error reading recharge map file. Please try again.");
         messageBox.setFixedSize(500,200);
+    }
+}
+
+void MainWindow::on_shrinkButton_clicked()
+{
+    std::cout << "Entering shrinkbutton" << std::endl;
+    validate_maps();
+    QString st = QString("");
+    st += "Shrinking Maps\nSmallest map size: " + QString::number(smallest_map.nrows) + " x " + QString::number(smallest_map.ncols);
+    ui->textBrowser->setText(st);
+    std::vector< std::vector<int> > shrunk_tt = shrink_map(travel_time);
+    st += "\nshrunk_tt size: " + QString::number(shrunk_tt.size()) + " x " + QString::number(shrunk_tt[0].size()) + "\nshrunk_tt[0][0]: " + QString::number(shrunk_tt[0][0]);
+    ui->textBrowser->setText(st);
+
+    for(int i = 0; i < shrunk_tt.size(); i++)
+    {
+        for(int j = 0; i < shrunk_tt[i].size(); j++)
+        {
+            if(shrunk_tt[i][j] != -9999)
+            {
+                st += "First non-null value at [" + QString::number(i) + "][" + QString::number(j) + "]: " + QString::number(shrunk_tt[i][j]);
+                ui->textBrowser->setText(st);
+                break;
+            }
+        }
     }
 }

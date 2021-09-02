@@ -159,6 +159,19 @@
      <string>Open Recharge Map</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="shrinkButton">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>490</y>
+      <width>113</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>shrink maps</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
