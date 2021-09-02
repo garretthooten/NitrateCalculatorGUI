@@ -39,7 +39,7 @@ private slots:
 
     void on_recharge_button_clicked();
 
-    void on_shrinkButton_clicked();
+    void on_resetButton_clicked();
 
 private:
     Ui::MainWindow *ui;

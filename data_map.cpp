@@ -112,4 +112,22 @@ Data_Map::Data_Map(std::string dir)
     string_map = parse_CSV(dir);
 }
 
+void Data_Map::clear()
+{
+    std::cout << "Entering clear!" << std::endl;
+
+    directory = "";
+    string_map.clear();
+    int_map.clear();
+    float_map.clear();
+
+    ncols = 0;
+    nrows = 0;
+    xllcorner = 0;
+    yllcorner = 0;
+    cellsize = 0;
+    NODATA_VALUE = -9999;
+
+    successfully_created = false;
+}
 

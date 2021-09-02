@@ -43,7 +43,7 @@ std::vector< std::vector<int> > MainWindow::shrink_map(Data_Map map)
         std::vector<int> temp_row;
         for(int j = 0; j < smallest_map.ncols; j++)
         {
-            std::cout << "Pushing back " << map.int_map[i+x_spacer][j+y_spacer] << std::endl;
+            //std::cout << "Pushing back " << map.int_map[i+x_spacer][j+y_spacer] << std::endl;
             temp_row.push_back(map.int_map[i + x_spacer][j + y_spacer]);
         }
         ret_vector.push_back(temp_row);
@@ -372,7 +372,7 @@ void MainWindow::on_calculate_button_clicked()
     {
         if(validate_maps())
         {
-            QString filepath = QFileDialog::getSaveFileName(this, "Choose where to save the new map", "new_map.csv", ".CSV (*.csv)");
+            QString filepath = QFileDialog::getSaveFileName(this, "Choose where to save the new map", "new_map.csv", ".CSV (*.csv);;.ASC (*.asc)");
             std::string string_filepath = filepath.toUtf8().constData();
             std::cout << "Save location is: " << string_filepath << std::endl;
 
@@ -438,24 +438,22 @@ void MainWindow::on_calculate_button_clicked()
                 QString progress = QString("Beginning Calculation!");
                 std::cout << "shrink step 1" << std::endl;
                 ui->textBrowser->setText(progress);
+
+                //shrinking travel time
                 std::vector< std::vector<int> > shrunk_traveltime;
-                if(!match_dimensions(travel_time, smallest_map))
-                {
-                    std::cout << "shrink step 2" << std::endl;
-                    progress += "\nTravel time does not match smallest map, updating...";
-                    ui->textBrowser->setText(progress);
-                    shrunk_traveltime = shrink_map(travel_time);
-                    std::cout << "smallest map dimensions: " << smallest_map.nrows << " x " << smallest_map.ncols << " shrunk_traveltime dimensions: " << shrunk_traveltime.size() << " x " << shrunk_traveltime[0].size() << std::endl;
-                }
+                std::cout << "shrink step 2" << std::endl;
+                progress += "\nTravel time does not match smallest map, updating...";
+                ui->textBrowser->setText(progress);
+                shrunk_traveltime = shrink_map(travel_time);
+                std::cout << "smallest map dimensions: " << smallest_map.nrows << " x " << smallest_map.ncols << " shrunk_traveltime dimensions: " << shrunk_traveltime.size() << " x " << shrunk_traveltime[0].size() << std::endl;
+
+                //shrinking recharge
                 std::vector< std::vector<float> > shrunk_recharge;
-                if(!match_dimensions(recharge_map, smallest_map))
-                {
-                    std::cout << "shrink step 3" << std::endl;
-                    progress += "\nRecharge map does not match smallest map, updating...";
-                    ui->textBrowser->setText(progress);
-                    shrunk_recharge = shrink_map_float(recharge_map);
-                    std::cout << "smallest map dimensions: " << smallest_map.nrows << " x " << smallest_map.ncols << " shrunk_traveltime dimensions: " << shrunk_recharge.size() << " x " << shrunk_recharge[0].size() << std::endl;
-                }
+                std::cout << "shrink step 3" << std::endl;
+                progress += "\nRecharge map does not match smallest map, updating...";
+                ui->textBrowser->setText(progress);
+                shrunk_recharge = shrink_map_float(recharge_map);
+                std::cout << "smallest map dimensions: " << smallest_map.nrows << " x " << smallest_map.ncols << " shrunk_traveltime dimensions: " << shrunk_recharge.size() << " x " << shrunk_recharge[0].size() << std::endl;
 
                 std::cout <<"shrink step 4" << std::endl;
                 std::map<int, std::vector< std::vector<int> > > shrunk_crops_map;
@@ -534,7 +532,11 @@ void MainWindow::on_calculate_button_clicked()
 
             std::string final_map;
             //depending on what type of file they are saving to, change this:
-            std::string divider = ",";
+            std::string divider = "";
+            if(string_filepath.find(".csv") != std::string::npos)
+                divider = ",";
+            else if(string_filepath.find(".asc") != std::string::npos)
+                divider = " ";
 
             //adding file variables before actual map
             final_map += "ncols" + divider + std::to_string(smallest_map.ncols) + divider;
@@ -621,7 +623,10 @@ void MainWindow::on_calculate_button_clicked()
 
             file.close();
 
-            ui->textBrowser->setText(QString("Calculation finished! File written to ") + QString(filepath));
+            QString final_text = QString("Calculation finished! File written to " + QString(filepath));
+            final_text += "\nnrows: " + QString::number(ret.size()) + "\nncols: " + QString::number(ret[0].size()) + "\nxllcorner: " + QString::number(smallest_map.xllcorner) + "\nyllcorner: " + QString::number(smallest_map.yllcorner);
+
+            ui->textBrowser->setText(final_text);
 
         }
         else
@@ -671,27 +676,43 @@ void MainWindow::on_recharge_button_clicked()
     }
 }
 
-void MainWindow::on_shrinkButton_clicked()
+void MainWindow::on_resetButton_clicked()
 {
-    std::cout << "Entering shrinkbutton" << std::endl;
-    validate_maps();
-    QString st = QString("");
-    st += "Shrinking Maps\nSmallest map size: " + QString::number(smallest_map.nrows) + " x " + QString::number(smallest_map.ncols);
-    ui->textBrowser->setText(st);
-    std::vector< std::vector<int> > shrunk_tt = shrink_map(travel_time);
-    st += "\nshrunk_tt size: " + QString::number(shrunk_tt.size()) + " x " + QString::number(shrunk_tt[0].size()) + "\nshrunk_tt[0][0]: " + QString::number(shrunk_tt[0][0]);
-    ui->textBrowser->setText(st);
-
-    for(int i = 0; i < shrunk_tt.size(); i++)
+    try
     {
-        for(int j = 0; i < shrunk_tt[i].size(); j++)
+        std::cout << "Entering reset button!" << std::endl;
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Reset", "This will reset all files currently loaded. Do you want to continue?", QMessageBox::Yes|QMessageBox::No);
+        if(reply == QMessageBox::Yes)
         {
-            if(shrunk_tt[i][j] != -9999)
-            {
-                st += "First non-null value at [" + QString::number(i) + "][" + QString::number(j) + "]: " + QString::number(shrunk_tt[i][j]);
-                ui->textBrowser->setText(st);
-                break;
-            }
+            std::cout << "User said yes! Resetting!" << std::endl;
+
+            sum_of_MgN = 0;
+            sum_of_volumes = 0;
+            sum_of_ft_cubed = 0;
+
+            all_maps_same_size = true;
+
+            calculation_year = 0;
+            crops_map.clear();
+            NODATA_VALUE = -9999;
+            required_years.clear();
+
+            travel_time.clear();
+            lookup_table.clear();
+            smallest_map.clear();
+            recharge_map.clear();
+
+            ui->YearEntry->setText("");
+            ui->textBrowser->setText("Calculator reset!");
+
+            std::cout << "All variables cleared!" << std::endl;
         }
+        else
+            std::cout << "Reset cancelled" << std::endl;
+    }
+    catch(std::exception &e)
+    {
+        std::cout << "Exception caught in reset button! " << e.what() << std::endl;
     }
 }

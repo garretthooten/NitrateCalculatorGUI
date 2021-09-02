@@ -35,6 +35,7 @@ public:
     static std::vector< std::vector<int> > string_to_int(std::vector< std::vector<std::string> > string_CSV, int starting_value);
     static std::vector< std::vector<float> > string_to_float(std::vector< std::vector<std::string> > string_CSV, int starting_value);
     void gather_variables();
+    void clear();
 };
 
 #endif // DATA_MAP_H
