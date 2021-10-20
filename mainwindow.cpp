@@ -400,22 +400,28 @@ void MainWindow::on_calculate_button_clicked()
                             //std::cout << "First value for this map is " << crops_map[calculation_year - temp].int_map[0][0] << std::endl;
                             crop_value = crops_map[calculation_year - temp].int_map[i][j];
                             //std::cout << "Crop value is: " << crop_value << std::endl;
-                            if((crop_value != NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3))
+                            if((crop_value != NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3) && (recharge_map.float_map[i][j] != -9999))
                             {
+
+
+
                                 //temporary area
                                 float area = smallest_map.cellsize * smallest_map.cellsize;
-                                float ft_cubed_per_day = (recharge_map.float_map[i][j] * 0.0254 * area * 35.3147) / 365;
-                                int concentration = std::stoi(lookup_table.string_map[crop_value][2]);
-                                float volume = (recharge_map.float_map[i][j] * area) / 1000;
-                                float mg_nitrate = ft_cubed_per_day * 3.78541 * concentration;
-                                float num = volume * concentration;
+                                //m3 per day
+                                float m3_per_day = (recharge_map.float_map[i][j] * 0.0254 * area) / 365;
+                                float concentration = std::stof(lookup_table.string_map[crop_value][2]);
+                                //volume is in liters
+                                float volume = m3_per_day * 1000;
+                                float mg_nitrate = (m3_per_day * 1000) * concentration;
 
                                 sum_of_MgN += mg_nitrate;
                                 sum_of_volumes += volume;
-                                sum_of_ft_cubed += ft_cubed_per_day;
 
                                 //std::cout << "Pushing back " << mg_nitrate << std::endl;
                                 inside_temp.push_back(mg_nitrate);
+
+                                //printing calculation values
+                                std::cout << "Crop value: " << crop_value << "\nArea: " << area << "\nm3_per_day: " << m3_per_day << "\nvolume: " << volume << "\nconcentration: " << concentration << "\nmg_nitrate: " << mg_nitrate << "\nrecharge_in: " << recharge_map.float_map[i][j] << std::endl;
                             }
                             else
                             {
@@ -625,7 +631,10 @@ void MainWindow::on_calculate_button_clicked()
 
             QString final_text = QString("Calculation finished! File written to " + QString(filepath));
             final_text += "\nnrows: " + QString::number(ret.size()) + "\nncols: " + QString::number(ret[0].size()) + "\nxllcorner: " + QString::number(smallest_map.xllcorner) + "\nyllcorner: " + QString::number(smallest_map.yllcorner);
+            //final_map += "\nSum of MgN/Sum of Volumes: " + QString::number(sum_of_MgN/sum_of_volumes);
+            std::cout << "mgn/volume: " << (sum_of_MgN/sum_of_volumes) << std::endl;
 
+            //print that map is in mgN per day per cell
             ui->textBrowser->setText(final_text);
 
         }
