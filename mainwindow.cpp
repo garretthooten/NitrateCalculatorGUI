@@ -505,15 +505,16 @@ void MainWindow::on_calculate_button_clicked()
                             {
                                 //temporary area
                                 float area = smallest_map.cellsize * smallest_map.cellsize;
-                                float ft_cubed_per_day = (shrunk_recharge[i][j] * 0.0254 * area * 35.3147) / 365;
-                                int concentration = std::stoi(lookup_table.string_map[crop_value][2]);
-                                float volume = (shrunk_recharge[i][j] * area) / 1000;
-                                float mg_nitrate = ft_cubed_per_day * 3.78541 * concentration;
+                                //m3 per day
+                                float m3_per_day = (recharge_map.float_map[i][j] * 0.0254 * area) / 365;
+                                float concentration = std::stof(lookup_table.string_map[crop_value][2]);
+                                //volume is in liters
+                                float volume = m3_per_day * 1000;
+                                float mg_nitrate = (m3_per_day * 1000) * concentration;
                                 float num = volume * concentration;
 
                                 sum_of_MgN += mg_nitrate;
                                 sum_of_volumes += volume;
-                                sum_of_ft_cubed += ft_cubed_per_day;
 
                                 //std::cout << "Pushing back " << mg_nitrate << std::endl;
                                 inside_temp.push_back(mg_nitrate);
@@ -633,6 +634,8 @@ void MainWindow::on_calculate_button_clicked()
             final_text += "\nnrows: " + QString::number(ret.size()) + "\nncols: " + QString::number(ret[0].size()) + "\nxllcorner: " + QString::number(smallest_map.xllcorner) + "\nyllcorner: " + QString::number(smallest_map.yllcorner);
             //final_map += "\nSum of MgN/Sum of Volumes: " + QString::number(sum_of_MgN/sum_of_volumes);
             std::cout << "mgn/volume: " << (sum_of_MgN/sum_of_volumes) << std::endl;
+            final_text += "\nSum of MgN/Sum of Volume" + QString::number(sum_of_MgN/sum_of_volumes);
+            final_text += "\nMap is calculated in MgN/Day per Cell";
 
             //print that map is in mgN per day per cell
             ui->textBrowser->setText(final_text);
