@@ -634,7 +634,8 @@ void MainWindow::on_calculate_button_clicked()
             final_text += "\nnrows: " + QString::number(ret.size()) + "\nncols: " + QString::number(ret[0].size()) + "\nxllcorner: " + QString::number(smallest_map.xllcorner) + "\nyllcorner: " + QString::number(smallest_map.yllcorner);
             //final_map += "\nSum of MgN/Sum of Volumes: " + QString::number(sum_of_MgN/sum_of_volumes);
             std::cout << "mgn/volume: " << (sum_of_MgN/sum_of_volumes) << std::endl;
-            final_text += "\nSum of MgN/Sum of Volume" + QString::number(sum_of_MgN/sum_of_volumes);
+            float rounded_no3 = roundf((sum_of_MgN/sum_of_volumes) * 100) / 100;
+            final_text += "\nPredicted NO3-N Concentration (mg/L): " + QString::number(rounded_no3);
             final_text += "\nMap is calculated in MgN/Day per Cell";
 
             //print that map is in mgN per day per cell
