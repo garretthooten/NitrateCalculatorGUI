@@ -511,13 +511,16 @@ void MainWindow::on_calculate_button_clicked()
                                 //volume is in liters
                                 float volume = m3_per_day * 1000;
                                 float mg_nitrate = (m3_per_day * 1000) * concentration;
+                                float kgn_year = mg_nitrate * 365 * powf(10.0f, -6.0f);
                                 float num = volume * concentration;
 
                                 sum_of_MgN += mg_nitrate;
+                                sum_of_kgn_year += kgn_year;
                                 sum_of_volumes += volume;
 
                                 //std::cout << "Pushing back " << mg_nitrate << std::endl;
-                                inside_temp.push_back(mg_nitrate);
+                                //inside_temp.push_back(mg_nitrate);
+                                inside_temp.push_back(kgn_year);
                             }
                             else
                             {
@@ -636,7 +639,7 @@ void MainWindow::on_calculate_button_clicked()
             std::cout << "mgn/volume: " << (sum_of_MgN/sum_of_volumes) << std::endl;
             float rounded_no3 = roundf((sum_of_MgN/sum_of_volumes) * 100) / 100;
             final_text += "\nPredicted NO3-N Concentration (mg/L): " + QString::number(rounded_no3);
-            final_text += "\nMap is calculated in MgN/Day per Cell";
+            final_text += "\nMap is calculated in kgN/year per Cell";
 
             //print that map is in mgN per day per cell
             ui->textBrowser->setText(final_text);

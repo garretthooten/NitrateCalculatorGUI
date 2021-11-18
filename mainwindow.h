@@ -45,6 +45,7 @@ private:
     Ui::MainWindow *ui;
 
     float sum_of_MgN;
+    float sum_of_kgn_year;
     float sum_of_volumes;
     float sum_of_ft_cubed;
 
