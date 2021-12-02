@@ -413,12 +413,14 @@ void MainWindow::on_calculate_button_clicked()
                                 //volume is in liters
                                 float volume = m3_per_day * 1000;
                                 float mg_nitrate = (m3_per_day * 1000) * concentration;
+                                float kgn_year = mg_nitrate * 365 * powf(10.0f, -6.0f);
 
                                 sum_of_MgN += mg_nitrate;
+
                                 sum_of_volumes += volume;
 
                                 //std::cout << "Pushing back " << mg_nitrate << std::endl;
-                                inside_temp.push_back(mg_nitrate);
+                                inside_temp.push_back(kgn_year);
 
                                 //printing calculation values
                                 std::cout << "Crop value: " << crop_value << "\nArea: " << area << "\nm3_per_day: " << m3_per_day << "\nvolume: " << volume << "\nconcentration: " << concentration << "\nmg_nitrate: " << mg_nitrate << "\nrecharge_in: " << recharge_map.float_map[i][j] << std::endl;
