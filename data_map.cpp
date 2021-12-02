@@ -109,7 +109,22 @@ Data_Map::Data_Map()
 
 Data_Map::Data_Map(std::string dir)
 {
-    string_map = parse_CSV(dir);
+    try
+    {
+        std::cout << "Creating data map for " << dir << std::endl;
+        string_map = parse_CSV(dir);
+        int_map = string_to_int(string_map, starting_value);
+        float_map = string_to_float(string_map, starting_value);
+        gather_variables();
+        std::cout << "Data map successfully created for " << dir << std::endl;
+    }
+    catch(std::exception &e)
+    {
+        std::cout << "Error creating data map: " << e.what() << std::endl;
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Error creating data map");
+        messageBox.setFixedSize(500,200);
+    }
 }
 
 void Data_Map::clear()

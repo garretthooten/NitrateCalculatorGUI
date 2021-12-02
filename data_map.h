@@ -19,6 +19,8 @@ public:
     std::vector< std::vector<int> > int_map;
     std::vector< std::vector<float> > float_map;
 
+    //starting value is how many rows to skip in the CSV before processing the actual map. change if formatting is different than test case
+    int starting_value = 6;
     int ncols;
     int nrows;
     double xllcorner;
