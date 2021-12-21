@@ -127,6 +127,23 @@ Data_Map::Data_Map(std::string dir)
     }
 }
 
+Data_Map::Data_Map(std::string dir, bool lookup)
+{
+    try
+    {
+        std::cout << "Creating data map for " << dir << std::endl;
+        string_map = parse_CSV(dir);
+        std::cout << "Data map successfully created for " << dir << std::endl;
+    }
+    catch(std::exception &e)
+    {
+        std::cout << "Error creating data map: " << e.what() << std::endl;
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Error creating data map");
+        messageBox.setFixedSize(500,200);
+    }
+}
+
 void Data_Map::clear()
 {
     std::cout << "Entering clear!" << std::endl;

@@ -29,6 +29,8 @@ public:
     int NODATA_VALUE;
     Data_Map();
     Data_Map(std::string dir);
+    //special case for lookup table, formatted differently
+    Data_Map(std::string dir, bool lookup);
 
     bool successfully_created = false;
 
