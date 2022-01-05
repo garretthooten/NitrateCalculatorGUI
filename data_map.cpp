@@ -95,6 +95,7 @@ void Data_Map::gather_variables()
         yllcorner = std::atof(string_map[3][1].c_str());
         cellsize = std::stoi(string_map[4][1]);
         NODATA_VALUE = std::stoi(string_map[5][1]);
+        area = ncols * nrows;
     }
     else
     {

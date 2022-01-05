@@ -23,9 +23,10 @@ public:
     int starting_value = 6;
     int ncols;
     int nrows;
+    float area;
     double xllcorner;
     double yllcorner;
-    int cellsize;
+    float cellsize;
     int NODATA_VALUE;
     Data_Map();
     Data_Map(std::string dir);
