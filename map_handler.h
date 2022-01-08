@@ -11,10 +11,17 @@ class map_handler
 public:
     map_handler();
 
+    //Beginning data input by user
     Data_Map travel_time;
     Data_Map recharge_in;
     Data_Map lookup_table;
     std::map<int, Data_Map> crops_map;
+
+    //Adjusted data for calculation
+    Data_Map adj_travel_time;
+    Data_Map adj_recharge_in;
+    //lookup table does not need to be adjusted
+    std::map<int, Data_Map> adj_crops_map;
 
     //add a map to crops map collection
     void add_crops_map(int year, std::string dir);
@@ -46,13 +53,13 @@ private:
      * 1. Find smallest map of current set based on land covered
      * 2. Make all maps match starting coords
      * 3. Find smallest map of that set
-     * 4. Shrink all maps to smallest size
+     * 4. Shrink all maps to smallest size OR in calculation only calculate over smallest map area
      */
 
     //Finding smallest map -- Step 1 and 3
     /* This map actually searches and finds the smallest map,
      * as opposed to get_smallest_map() above. */
-    Data_Map find_smallest_map();
+    Data_Map find_smallest_map(Data_Map tt, Data_Map recharge, std::map<int, Data_Map> cmap);
 
     //"cropping" maps to smallest map coords
     Data_Map crop_to_coords(Data_Map my_map);
@@ -60,6 +67,9 @@ private:
     //Creating standardized maps -- Step 2
     Data_Map get_same_coords(Data_Map target);
     std::map<std::string, Data_Map> get_same_coords(std::map<std::string, Data_Map> target);
+
+    //Performing calculation -- Step 4
+    Data_Map calculate_new_map();
 
 };
 

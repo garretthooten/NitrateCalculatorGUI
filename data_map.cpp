@@ -103,6 +103,17 @@ void Data_Map::gather_variables()
     }
 }
 
+void Data_Map::insert_variables(int tncols, int tnrows, float tarea, double txllcorner, double tyllcorner, float tcellsize, int tNODATA_VALUE)
+{
+    ncols = tncols;
+    nrows = tnrows;
+    area = tarea;
+    xllcorner = txllcorner;
+    yllcorner = tyllcorner;
+    cellsize = tcellsize;
+    NODATA_VALUE = tNODATA_VALUE;
+}
+
 Data_Map::Data_Map()
 {
 
@@ -143,6 +154,11 @@ Data_Map::Data_Map(std::string dir, bool lookup)
         messageBox.critical(0,"Error","Error creating data map");
         messageBox.setFixedSize(500,200);
     }
+}
+
+Data_Map::Data_Map(std::vector< std::vector< float > > fmap)
+{
+    float_map = fmap;
 }
 
 void Data_Map::clear()

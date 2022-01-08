@@ -56,20 +56,20 @@ bool map_handler::are_maps_same()
 }
 
 //finding the smallest map in the set based on land covered
-Data_Map map_handler::find_smallest_map()
+Data_Map map_handler::find_smallest_map(Data_Map tt, Data_Map recharge, std::map<int, Data_Map> cmap)
 {
     //set smallest to travel time first, just to get started
-    Data_Map temp_smallest = travel_time;
-    int smallest_land = get_land_covered(travel_time);
+    Data_Map temp_smallest = tt;
+    int smallest_land = get_land_covered(tt);
 
     //comparing against recharge map
-    if(get_land_covered(recharge_in) < smallest_land)
+    if(get_land_covered(recharge) < smallest_land)
     {
-        smallest_land = get_land_covered(recharge_in);
-        temp_smallest = recharge_in;
+        smallest_land = get_land_covered(recharge);
+        temp_smallest = recharge;
     }
     //comparing against maps in crops_map
-    for(std::map<int, Data_Map>::iterator it = crops_map.begin(); it != crops_map.end(); it++)
+    for(std::map<int, Data_Map>::iterator it = cmap.begin(); it != cmap.end(); it++)
     {
         if(get_land_covered(it->second) < smallest_land)
         {
@@ -107,11 +107,34 @@ Data_Map map_handler::get_same_coords(Data_Map target)
                 //create new data map object and insert float map into it
                 //insert new params to data map object
                 //return data map object (temp return below)
-                return Data_Map();
+                Data_Map ret_map(new_map);
+                ret_map.insert_variables(new_map[0].size(), new_map.size(), new_map[0].size() * new_map.size(), smallest_map.xllcorner, smallest_map.yllcorner, target.cellsize, target.NODATA_VALUE);
+                return ret_map;
             }
         }
+        else
+        {
+            throw std::invalid_argument("maps_checked is false");
+        }
 
-    }  catch (std::exception &e) {
-        std::cout << "Error in get_same_coords(1)! " << e.what();
+    }  catch (const std::exception &e) {
+        std::cout << "Error in get_same_coords! " << e.what();
+    }
+}
+
+Data_Map map_handler::calculate_new_map()
+{
+    if(all_maps_same_coord)
+    {
+        int crop_value;
+        int temp;
+        for(int i = 0; i < smallest_map.float_map.size(); i++)
+        {
+            std::vector<float> inside_temp;
+            for(int j = 0; j < travel_time.float_map[i].size(); j++)
+            {
+                temp = adj_travel_time.float_map[i][j];
+            }
+        }
     }
 }
