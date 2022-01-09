@@ -69,7 +69,7 @@ private:
     std::map<std::string, Data_Map> get_same_coords(std::map<std::string, Data_Map> target);
 
     //Performing calculation -- Step 4
-    Data_Map calculate_new_map();
+    Data_Map calculate_new_map(int year, float* s_mgn, float* s_volume);
 
 };
 
