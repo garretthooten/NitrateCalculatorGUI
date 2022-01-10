@@ -12,6 +12,7 @@
 #include <sstream>
 #include <map>
 #include "data_map.h"
+#include "map_handler.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -44,31 +45,16 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
+    map_handler handler;
+
     float sum_of_MgN;
     float sum_of_kgn_year;
     float sum_of_volumes;
     float sum_of_ft_cubed;
 
-    bool all_maps_same_size = true;
-
-    Data_Map travel_time;
-    Data_Map lookup_table;
-    Data_Map smallest_map;
-    Data_Map recharge_map;
-
-    //information variables
     int calculation_year;
-    std::map<int, Data_Map > crops_map;
     int NODATA_VALUE = -9999;
     std::vector<int> required_years;
-
-    //validate that all maps are ready to be used
-    bool validate_maps();
-    bool match_dimensions(Data_Map map, Data_Map small_map);
-
-    //shrink maps to smallest map size
-    std::vector< std::vector<int> > shrink_map(Data_Map map);
-    std::vector< std::vector<float> > shrink_map_float(Data_Map map);
 
     QString print_csv(Data_Map data);
 };

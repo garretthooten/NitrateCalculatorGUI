@@ -25,6 +25,7 @@ int get_land_covered(Data_Map temp)
 
 bool map_handler::are_maps_same()
 {
+    std::cout << "Entering are_maps_same" << std::endl;
     //comparing all maps to travel time to see if they are all the same
     if(recharge_in.area != travel_time.area)
     {
@@ -59,6 +60,7 @@ bool map_handler::are_maps_same()
 //finding the smallest map in the set based on land covered
 Data_Map map_handler::find_smallest_map(Data_Map tt, Data_Map recharge, std::map<int, Data_Map> cmap)
 {
+    std::cout << "Entering find_smallest_map" << std::endl;
     //set smallest to travel time first, just to get started
     Data_Map temp_smallest = tt;
     int smallest_land = get_land_covered(tt);
@@ -87,6 +89,7 @@ Data_Map map_handler::find_smallest_map(Data_Map tt, Data_Map recharge, std::map
  */
 Data_Map map_handler::get_same_coords(Data_Map target)
 {
+    std::cout << "Entering get_same_coords(Data_Map target)" << std::endl;
     try {
         if(maps_checked)
         {
@@ -128,6 +131,17 @@ Data_Map map_handler::get_same_coords(Data_Map target)
     }
 }
 
+std::map<int, Data_Map> map_handler::get_same_coords(std::map<int, Data_Map> target)
+{
+    std::cout << "Entering get_same_coords(map)" << std::endl;
+    std::map<int, Data_Map> ret;
+    for(std::map<int, Data_Map>::iterator it = target.begin(); it != target.end(); it++)
+    {
+        ret[it->first] = get_same_coords(it->second);
+    }
+    return ret;
+}
+
 /*  Params
  *  int year - the year to calculate input by user (used to find appropriate crops map)
  *  float* s_mgn - where to store the sum of all MgN
@@ -135,6 +149,22 @@ Data_Map map_handler::get_same_coords(Data_Map target)
  */
 Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
 {
+
+    std::cout << "Entering calculate new map" << std::endl;
+
+    //Step 1 - Find smallest map
+    are_maps_same();
+    smallest_map = find_smallest_map(travel_time, recharge_in, crops_map);
+
+    //Step 2 - Make all maps begin at smallest coords
+    adj_travel_time = get_same_coords(travel_time);
+    adj_recharge_in = get_same_coords(recharge_in);
+    adj_crops_map = get_same_coords(crops_map);
+
+    //Step 3 - Find smallest map of that set
+    smallest_map = find_smallest_map(adj_travel_time, adj_recharge_in, adj_crops_map);
+
+    //Step 4 - Calculate within smallest map
     if(all_maps_same_coord)
     {
         int crop_value;
@@ -189,5 +219,11 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
         return calculated_map;
     }
     else
+    {
+        std::cout << "Error in calculation!" << std::endl;
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Error in calculation.");
+        messageBox.setFixedSize(500,200);
         return Data_Map();
+    }
 }

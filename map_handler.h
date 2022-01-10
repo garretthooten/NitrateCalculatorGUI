@@ -35,6 +35,9 @@ public:
     //creating a set of uniform maps to calculate with
     std::map<std::string, Data_Map> get_standardized_maps();
 
+    //Performing calculation -- Step 4
+    Data_Map calculate_new_map(int year, float* s_mgn, float* s_volume);
+
     void reset();
 
 private:
@@ -61,15 +64,11 @@ private:
      * as opposed to get_smallest_map() above. */
     Data_Map find_smallest_map(Data_Map tt, Data_Map recharge, std::map<int, Data_Map> cmap);
 
-    //"cropping" maps to smallest map coords
-    Data_Map crop_to_coords(Data_Map my_map);
-
     //Creating standardized maps -- Step 2
     Data_Map get_same_coords(Data_Map target);
-    std::map<std::string, Data_Map> get_same_coords(std::map<std::string, Data_Map> target);
+    std::map<int, Data_Map> get_same_coords(std::map<int, Data_Map> target);
 
-    //Performing calculation -- Step 4
-    Data_Map calculate_new_map(int year, float* s_mgn, float* s_volume);
+
 
 };
 
