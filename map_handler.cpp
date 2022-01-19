@@ -90,14 +90,21 @@ Data_Map map_handler::find_smallest_map(Data_Map tt, Data_Map recharge, std::map
 Data_Map map_handler::get_same_coords(Data_Map target)
 {
     std::cout << "Entering get_same_coords(Data_Map target)" << std::endl;
+    std::cout << "Target ncols: " << target.ncols << "\ntarget nrows: " << target.nrows << "\nxllcorner: " << target.xllcorner << "\nyllcorner: " << target.yllcorner << std::endl;
+    std::cout << "maps_checked: " << maps_checked << std::endl;
     try {
         if(maps_checked)
         {
             //making sure that the smallest map fits within the target map
             //this takes a larger target map and shrinks it to the same coords as smallest map
+            std::cout << "smallest map\nnrows: " << smallest_map.nrows << "\nncols: " << smallest_map.ncols << "\nxllcorner: " << smallest_map.xllcorner << "\nyllcorner: " << smallest_map.yllcorner << std::endl;
+            std::cout << "condition: " << (smallest_map.xllcorner > target.xllcorner && smallest_map.yllcorner < target.yllcorner) << std::endl;
             if(smallest_map.xllcorner > target.xllcorner && smallest_map.yllcorner < target.yllcorner)
             {
+                std::cout << "I am here!" << std::endl;
+                std::cout << "smallest cellsize: " << smallest_map.cellsize << "\ntarget cellsize: " << target.cellsize << std::endl;
                 float units = target.cellsize / smallest_map.cellsize;
+                std::cout << "units: " << units << std::endl;
                 std::vector< std::vector<float> > new_map;
                 float starting_x = (smallest_map.xllcorner - target.xllcorner) * units;
                 float starting_y = (target.yllcorner - smallest_map.yllcorner) * units;
@@ -118,6 +125,10 @@ Data_Map map_handler::get_same_coords(Data_Map target)
                 Data_Map ret_map(new_map);
                 ret_map.insert_variables(new_map[0].size(), new_map.size(), new_map[0].size() * new_map.size(), smallest_map.xllcorner, smallest_map.yllcorner, target.cellsize, target.NODATA_VALUE);
                 return ret_map;
+            }
+            else if(smallest_map.xllcorner == target.xllcorner && smallest_map.yllcorner == target.yllcorner)
+            {
+                return target;
             }
         }
         else
@@ -194,7 +205,7 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                     {
                         crop_value = adj_crops_map[access].int_map[i][j];
                     }
-                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3) && (adj_recharge_in.float_map[recharge_units * i][recharge_units * j] != adj_recharge_in.NODATA_VALUE))
+                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (is_number(lookup_table.string_map[crop_value][2])) && (adj_recharge_in.float_map[recharge_units * i][recharge_units * j] != adj_recharge_in.NODATA_VALUE))
                     {
                         float area = powf(adj_crops_map[access].cellsize, 2.0f);
                         float m3_per_day = (adj_recharge_in.float_map[i * recharge_units][j * recharge_units] * 0.0254 * area) / 365;
@@ -208,6 +219,10 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
 
                         inside_temp.push_back(kgn_year);
                     }
+                    else
+                    {
+                        inside_temp.push_back(adj_travel_time.NODATA_VALUE);
+                    }
                 }
                 else
                     inside_temp.push_back(adj_travel_time.NODATA_VALUE);
@@ -216,6 +231,7 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
         }
         Data_Map calculated_map = Data_Map(ret);
         calculated_map.insert_variables(smallest_map.ncols, smallest_map.nrows, smallest_map.area, smallest_map.xllcorner, smallest_map.yllcorner, smallest_map.cellsize, smallest_map.NODATA_VALUE);
+        std::cout << "Done!" << std::endl;
         return calculated_map;
     }
     else
@@ -226,4 +242,15 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
         messageBox.setFixedSize(500,200);
         return Data_Map();
     }
+}
+
+//  Checks if a string is a number. Used in calculation to avoid processing empty lookup table values
+bool map_handler::is_number(std::string str)
+{
+    for(char c : str)
+    {
+        if(std::isdigit(c))
+            return true;
+    }
+    return false;
 }

@@ -68,6 +68,8 @@ private:
     Data_Map get_same_coords(Data_Map target);
     std::map<int, Data_Map> get_same_coords(std::map<int, Data_Map> target);
 
+    bool is_number(std::string str);
+
 
 
 };
