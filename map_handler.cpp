@@ -176,6 +176,7 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
     //Step 1 - Find smallest map
     are_maps_same();
     smallest_map = find_smallest_map(travel_time, recharge_in, crops_map);
+    std::cout << "Found first smallest map!" << std::endl;
 
     //Step 2 - Make all maps begin at smallest coords
     adj_travel_time = get_same_coords(travel_time);
@@ -184,6 +185,7 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
 
     //Step 3 - Find smallest map of that set
     smallest_map = find_smallest_map(adj_travel_time, adj_recharge_in, adj_crops_map);
+    std::cout << "Found second smallest map!" << std::endl;
 
     //Step 4 - Calculate within smallest map
     if(all_maps_same_coord)
@@ -200,8 +202,9 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
         for(int i = 0; i < smallest_map.float_map.size(); i++)
         {
             std::vector<float> inside_temp;
-            for(int j = 0; j < travel_time.float_map[i].size(); j++)
+            for(int j = 0; j < smallest_map.float_map[i].size(); j++)
             {
+                std::cout << "Starting row " << i << " / " << smallest_map.float_map.size() << " and column " << j << " / " << smallest_map.float_map[i].size() << std::endl;
                 temp = adj_travel_time.float_map[i][j];
                 if(temp != adj_travel_time.NODATA_VALUE)
                 {
@@ -238,11 +241,14 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                     inside_temp.push_back(adj_travel_time.NODATA_VALUE);
             }
             ret.push_back(inside_temp);
+            std::cout << "Pushed back row!" << std::endl;
         }
-        Data_Map calculated_map = Data_Map(ret);
-        calculated_map.insert_variables(smallest_map.ncols, smallest_map.nrows, smallest_map.area, smallest_map.xllcorner, smallest_map.yllcorner, smallest_map.cellsize, smallest_map.NODATA_VALUE);
-        std::cout << "Done!" << std::endl;
-        return calculated_map;
+        //std::cout << "Exited loop" << std::endl;
+        //Data_Map calculated_map = Data_Map(ret);
+        //calculated_map.insert_variables(smallest_map.ncols, smallest_map.nrows, smallest_map.area, smallest_map.xllcorner, smallest_map.yllcorner, smallest_map.cellsize, smallest_map.NODATA_VALUE);
+        //std::cout << "Done!" << std::endl;
+        //return calculated_map;
+        return adj_travel_time;
     }
     else
     {
