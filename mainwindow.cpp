@@ -300,7 +300,7 @@ void MainWindow::on_recharge_button_clicked()
         handler.recharge_in = Data_Map(filepath.toStdString());
         if(handler.recharge_in.successfully_created)
         {
-            QString temp = "";
+            QString temp = "ncols: " + QString::number(handler.recharge_in.ncols) + "\nnrows: " + QString::number(handler.recharge_in.nrows) + "\ncellsize: " + QString::number(handler.recharge_in.cellsize) + "\nxllcorner: " + QString::number(handler.recharge_in.xllcorner) + "\nyllcorner: " + QString::number(handler.recharge_in.yllcorner) + "\n";
             for(int i = 0; i < handler.recharge_in.float_map.size(); i++)
             {
                 for(int j = 0; j < handler.recharge_in.float_map[i].size(); j++)
@@ -325,7 +325,6 @@ void MainWindow::on_resetButton_clicked()
 {
     try
     {
-        /*
         std::cout << "Entering reset button!" << std::endl;
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(this, "Reset", "This will reset all files currently loaded. Do you want to continue?", QMessageBox::Yes|QMessageBox::No);
@@ -336,18 +335,10 @@ void MainWindow::on_resetButton_clicked()
             sum_of_MgN = 0;
             sum_of_volumes = 0;
             sum_of_ft_cubed = 0;
-
-            all_maps_same_size = true;
-
             calculation_year = 0;
-            crops_map.clear();
-            NODATA_VALUE = -9999;
             required_years.clear();
 
-            travel_time.clear();
-            lookup_table.clear();
-            smallest_map.clear();
-            recharge_map.clear();
+            handler.reset();
 
             ui->YearEntry->setText("");
             ui->textBrowser->setText("Calculator reset!");
@@ -356,7 +347,6 @@ void MainWindow::on_resetButton_clicked()
         }
         else
             std::cout << "Reset cancelled" << std::endl;
-            */
     }
     catch(std::exception &e)
     {

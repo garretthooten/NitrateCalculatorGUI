@@ -99,24 +99,30 @@ Data_Map map_handler::get_same_coords(Data_Map target)
             //this takes a larger target map and shrinks it to the same coords as smallest map
             std::cout << "smallest map\nnrows: " << smallest_map.nrows << "\nncols: " << smallest_map.ncols << "\nxllcorner: " << smallest_map.xllcorner << "\nyllcorner: " << smallest_map.yllcorner << std::endl;
             std::cout << "condition: " << (smallest_map.xllcorner > target.xllcorner && smallest_map.yllcorner < target.yllcorner) << std::endl;
-            if(smallest_map.xllcorner > target.xllcorner && smallest_map.yllcorner < target.yllcorner)
+            if(smallest_map.xllcorner > target.xllcorner && smallest_map.yllcorner > target.yllcorner)
             {
                 std::cout << "I am here!" << std::endl;
                 std::cout << "smallest cellsize: " << smallest_map.cellsize << "\ntarget cellsize: " << target.cellsize << std::endl;
                 float units = target.cellsize / smallest_map.cellsize;
                 std::cout << "units: " << units << std::endl;
                 std::vector< std::vector<float> > new_map;
-                float starting_x = (smallest_map.xllcorner - target.xllcorner) * units;
-                float starting_y = (target.yllcorner - smallest_map.yllcorner) * units;
+                //float starting_x = (smallest_map.xllcorner - target.xllcorner) * units;
+                //float starting_y = (target.yllcorner - smallest_map.yllcorner) * units;
+                float starting_x = (smallest_map.xllcorner - target.xllcorner) / target.cellsize;
+                float starting_y = (smallest_map.yllcorner - target.yllcorner) / target.cellsize;
+                std::cout << "starting_x: " << starting_x << " starting_y: " << starting_y << std::endl;
                 int new_i = 0;
                 int new_j = 0;
                 for(int i = starting_x; i < target.nrows; i++)
                 {
+                    std::vector<float> temp_row;
                     for(int j = starting_y; j < target.ncols; j++)
                     {
-                        new_map[new_i][new_j] = target.float_map[i][j];
+                        //new_map[new_i][new_j] = target.float_map[i][j];
+                        temp_row.push_back(target.float_map[i][j]);
                         new_j++;
                     }
+                    new_map.push_back(temp_row);
                     new_i++;
                 }
                 //create new data map object and insert float map into it
@@ -130,6 +136,10 @@ Data_Map map_handler::get_same_coords(Data_Map target)
             {
                 return target;
             }
+            else
+            {
+                throw std::invalid_argument("smallest map is out of bounds of target map!");
+            }
         }
         else
         {
@@ -138,7 +148,7 @@ Data_Map map_handler::get_same_coords(Data_Map target)
 
     }  catch (const std::exception &e) {
         std::cout << "Error in get_same_coords! " << e.what();
-        return Data_Map();
+        return target;
     }
 }
 
@@ -253,4 +263,21 @@ bool map_handler::is_number(std::string str)
             return true;
     }
     return false;
+}
+
+//Reset all variables for new calculation
+void map_handler::reset()
+{
+    travel_time.clear();
+    recharge_in.clear();
+    crops_map.clear();
+    lookup_table.clear();
+
+    adj_travel_time.clear();
+    adj_recharge_in.clear();
+    adj_crops_map.clear();
+    smallest_map.clear();
+
+    all_maps_same_size = true;
+    all_maps_same_coord = true;
 }
