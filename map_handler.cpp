@@ -206,10 +206,12 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
             {
                 std::cout << "Starting row " << i << " / " << smallest_map.float_map.size() << " and column " << j << " / " << smallest_map.float_map[i].size() << std::endl;
                 temp = adj_travel_time.float_map[i][j];
+                std::cout << "Temp: " << temp << std::endl;
                 if(temp != adj_travel_time.NODATA_VALUE)
                 {
                     int access = year - temp;
                     float units = adj_crops_map[access].cellsize / smallest_map.cellsize;
+                    std::cout << "access: " << access << "\nunits: " << units << std::endl;
                     if(units > 1)
                     {
                         crop_value = adj_crops_map[access].int_map[i * units][j * units];
@@ -217,12 +219,17 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                     else
                     {
                         crop_value = adj_crops_map[access].int_map[i][j];
+                        std::cout << "crop value: " << crop_value << std::endl;
                     }
                     if((crop_value != adj_crops_map[access].NODATA_VALUE) && (is_number(lookup_table.string_map[crop_value][2])) && (adj_recharge_in.float_map[recharge_units * i][recharge_units * j] != adj_recharge_in.NODATA_VALUE))
                     {
+                        std::cout << "Entering calculation loop" << std::endl;
                         float area = powf(adj_crops_map[access].cellsize, 2.0f);
+                        std::cout << "Area: " << area << std::endl;
                         float m3_per_day = (adj_recharge_in.float_map[i * recharge_units][j * recharge_units] * 0.0254 * area) / 365;
+                        std::cout << "m3_per_day: " << m3_per_day << std::endl;
                         float concentration = std::stof(lookup_table.string_map[crop_value][2]);
+                        std::cout << "concentration (string):" << lookup_table.string_map[crop_value][2] << "\nconcentration (float): " << concentration << std::endl;
                         //calculating volume in liters
                         float volume = m3_per_day * 1000;
                         float mg_nitrate = (m3_per_day * 1000) * concentration;
@@ -230,6 +237,7 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                         sum_of_MgN += mg_nitrate;
                         sum_of_volume += volume;
 
+                        std::cout << "kgn_year: " << kgn_year << std::endl;
                         inside_temp.push_back(kgn_year);
                     }
                     else
