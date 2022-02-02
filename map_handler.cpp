@@ -188,7 +188,7 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
     std::cout << "Found second smallest map!" << std::endl;
 
     //Step 4 - Calculate within smallest map
-    if(all_maps_same_coord)
+    if(/*all_maps_same_coord*/true)
     {
         int crop_value;
         int temp;
@@ -221,7 +221,9 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                         crop_value = adj_crops_map[access].int_map[i][j];
                         std::cout << "crop value: " << crop_value << std::endl;
                     }
-                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (is_number(lookup_table.string_map[crop_value][2])) && (adj_recharge_in.float_map[recharge_units * i][recharge_units * j] != adj_recharge_in.NODATA_VALUE))
+                    bool cool_bool = (lookup_table.string_map[crop_value].size() == 3);
+                    std::cout << "Cool bool: " << cool_bool << std::endl;
+                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3) && (adj_recharge_in.float_map[recharge_units * i][recharge_units * j] != adj_recharge_in.NODATA_VALUE))
                     {
                         std::cout << "Entering calculation loop" << std::endl;
                         float area = powf(adj_crops_map[access].cellsize, 2.0f);
@@ -242,6 +244,8 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                     }
                     else
                     {
+                        std::cout << "Not a valid crop value!" << std::endl;
+                        std::cout << "pushing back " << adj_travel_time.NODATA_VALUE << std::endl;
                         inside_temp.push_back(adj_travel_time.NODATA_VALUE);
                     }
                 }
