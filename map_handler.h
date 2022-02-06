@@ -38,6 +38,8 @@ public:
     //Performing calculation -- Step 4
     Data_Map calculate_new_map(int year, float* s_mgn, float* s_volume);
 
+    Data_Map find_smallest_map(Data_Map tt, Data_Map recharge, std::map<int, Data_Map> cmap);
+
     void reset();
 
 private:
@@ -62,7 +64,7 @@ private:
     //Finding smallest map -- Step 1 and 3
     /* This map actually searches and finds the smallest map,
      * as opposed to get_smallest_map() above. */
-    Data_Map find_smallest_map(Data_Map tt, Data_Map recharge, std::map<int, Data_Map> cmap);
+    //Data_Map find_smallest_map(Data_Map tt, Data_Map recharge, std::map<int, Data_Map> cmap);
 
     //Creating standardized maps -- Step 2
     Data_Map get_same_coords(Data_Map target);

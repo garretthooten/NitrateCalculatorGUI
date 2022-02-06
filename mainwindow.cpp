@@ -7,7 +7,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->progressBar->setHidden(true);
     this->setWindowTitle("Nitrate Calculator");
 }
 
@@ -352,4 +351,13 @@ void MainWindow::on_resetButton_clicked()
     {
         std::cout << "Exception caught in reset button! " << e.what() << std::endl;
     }
+}
+
+void MainWindow::on_smallestbutton_clicked()
+{
+    Data_Map current_smallest = handler.find_smallest_map(handler.travel_time, handler.recharge_in, handler.crops_map);
+    QString text = QString("Smallest\nnrows: ") + QString::number(current_smallest.nrows) + "\nncols: " + QString::number(current_smallest.ncols);
+    ui->textBrowser->setText(text);
+    float recharge_units = handler.recharge_in.cellsize / current_smallest.cellsize;
+    std::cout << "handler.recharge_in.cellsize: " << handler.recharge_in.cellsize << "\ncurrent_smallest.cellsize: " << current_smallest.cellsize << "\nrecharge_units: " << (handler.recharge_in.cellsize / current_smallest.cellsize) << std::endl;
 }

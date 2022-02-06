@@ -42,6 +42,8 @@ private slots:
 
     void on_resetButton_clicked();
 
+    void on_smallestbutton_clicked();
+
 private:
     Ui::MainWindow *ui;
 

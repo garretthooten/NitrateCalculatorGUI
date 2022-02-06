@@ -21,6 +21,7 @@ Data_Map map_handler::get_smallest_map()
 int get_land_covered(Data_Map temp)
 {
     return temp.cellsize * temp.nrows * temp.ncols;
+    //return temp.nrows * temp.ncols;
 }
 
 bool map_handler::are_maps_same()
@@ -106,10 +107,10 @@ Data_Map map_handler::get_same_coords(Data_Map target)
                 float units = target.cellsize / smallest_map.cellsize;
                 std::cout << "units: " << units << std::endl;
                 std::vector< std::vector<float> > new_map;
-                //float starting_x = (smallest_map.xllcorner - target.xllcorner) * units;
-                //float starting_y = (target.yllcorner - smallest_map.yllcorner) * units;
-                float starting_x = (smallest_map.xllcorner - target.xllcorner) / target.cellsize;
-                float starting_y = (smallest_map.yllcorner - target.yllcorner) / target.cellsize;
+                //float starting_x = (smallest_map.xllcorner - target.xllcorner) / target.cellsize;
+                //float starting_y = (smallest_map.yllcorner - target.yllcorner) / target.cellsize;
+                float starting_x = (smallest_map.xllcorner - target.xllcorner) * units;
+                float starting_y = (smallest_map.yllcorner - target.yllcorner) * units;
                 std::cout << "starting_x: " << starting_x << " starting_y: " << starting_y << std::endl;
                 int new_i = 0;
                 int new_j = 0;
@@ -205,8 +206,8 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
             for(int j = 0; j < smallest_map.float_map[i].size(); j++)
             {
                 std::cout << "Starting row " << i << " / " << smallest_map.float_map.size() << " and column " << j << " / " << smallest_map.float_map[i].size() << std::endl;
+                std::cout << "adj_recharge[i][j]" << adj_recharge_in.float_map[recharge_units * i][recharge_units * j] << std::endl;
                 temp = adj_travel_time.float_map[i][j];
-                std::cout << "Temp: " << temp << std::endl;
                 if(temp != adj_travel_time.NODATA_VALUE)
                 {
                     int access = year - temp;
@@ -223,15 +224,11 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                     }
                     bool cool_bool = (lookup_table.string_map[crop_value].size() == 3);
                     std::cout << "Cool bool: " << cool_bool << std::endl;
-                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3) && (adj_recharge_in.float_map[recharge_units * i][recharge_units * j] != adj_recharge_in.NODATA_VALUE))
+                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3) && (adj_recharge_in.float_map[i / recharge_units][j / recharge_units] != adj_recharge_in.NODATA_VALUE))
                     {
-                        std::cout << "Entering calculation loop" << std::endl;
                         float area = powf(adj_crops_map[access].cellsize, 2.0f);
-                        std::cout << "Area: " << area << std::endl;
                         float m3_per_day = (adj_recharge_in.float_map[i * recharge_units][j * recharge_units] * 0.0254 * area) / 365;
-                        std::cout << "m3_per_day: " << m3_per_day << std::endl;
                         float concentration = std::stof(lookup_table.string_map[crop_value][2]);
-                        std::cout << "concentration (string):" << lookup_table.string_map[crop_value][2] << "\nconcentration (float): " << concentration << std::endl;
                         //calculating volume in liters
                         float volume = m3_per_day * 1000;
                         float mg_nitrate = (m3_per_day * 1000) * concentration;
@@ -239,7 +236,6 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                         sum_of_MgN += mg_nitrate;
                         sum_of_volume += volume;
 
-                        std::cout << "kgn_year: " << kgn_year << std::endl;
                         inside_temp.push_back(kgn_year);
                     }
                     else
@@ -255,12 +251,11 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
             ret.push_back(inside_temp);
             std::cout << "Pushed back row!" << std::endl;
         }
-        //std::cout << "Exited loop" << std::endl;
-        //Data_Map calculated_map = Data_Map(ret);
-        //calculated_map.insert_variables(smallest_map.ncols, smallest_map.nrows, smallest_map.area, smallest_map.xllcorner, smallest_map.yllcorner, smallest_map.cellsize, smallest_map.NODATA_VALUE);
-        //std::cout << "Done!" << std::endl;
-        //return calculated_map;
-        return adj_travel_time;
+        std::cout << "Exited loop" << std::endl;
+        Data_Map calculated_map = Data_Map(ret);
+        calculated_map.insert_variables(smallest_map.ncols, smallest_map.nrows, smallest_map.area, smallest_map.xllcorner, smallest_map.yllcorner, smallest_map.cellsize, smallest_map.NODATA_VALUE);
+        std::cout << "Done!" << std::endl;
+        return calculated_map;
     }
     else
     {
