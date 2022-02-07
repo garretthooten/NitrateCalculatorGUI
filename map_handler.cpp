@@ -107,10 +107,12 @@ Data_Map map_handler::get_same_coords(Data_Map target)
                 float units = target.cellsize / smallest_map.cellsize;
                 std::cout << "units: " << units << std::endl;
                 std::vector< std::vector<float> > new_map;
-                //float starting_x = (smallest_map.xllcorner - target.xllcorner) / target.cellsize;
-                //float starting_y = (smallest_map.yllcorner - target.yllcorner) / target.cellsize;
-                float starting_x = (smallest_map.xllcorner - target.xllcorner) * units;
-                float starting_y = (smallest_map.yllcorner - target.yllcorner) * units;
+                //float starting_x = (smallest_map.xllcorner - target.xllcorner) / units;
+                //float starting_y = (smallest_map.yllcorner - target.yllcorner) / units;
+                float starting_x = (smallest_map.xllcorner - target.xllcorner) / target.cellsize;
+                float starting_y = (smallest_map.yllcorner - target.yllcorner) / target.cellsize;
+                //float starting_x = (smallest_map.xllcorner - target.xllcorner) * units;
+                //float starting_y = (smallest_map.yllcorner - target.yllcorner) * units;
                 std::cout << "starting_x: " << starting_x << " starting_y: " << starting_y << std::endl;
                 int new_i = 0;
                 int new_j = 0;
@@ -135,6 +137,7 @@ Data_Map map_handler::get_same_coords(Data_Map target)
             }
             else if(smallest_map.xllcorner == target.xllcorner && smallest_map.yllcorner == target.yllcorner)
             {
+                std::cout << "Condition failed, returning target" << std::endl;
                 return target;
             }
             else
@@ -192,44 +195,40 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
     if(/*all_maps_same_coord*/true)
     {
         int crop_value;
-        int temp;
         float sum_of_MgN = 0;
         float sum_of_volume = 0;
         std::vector< std::vector<float> > ret;
 
+        float tt_units = adj_travel_time.cellsize / smallest_map.cellsize;
         float recharge_units = adj_recharge_in.cellsize / smallest_map.cellsize;
-        std::cout << "recharge units: " << recharge_units << std::endl;
+        std::cout << "tt_units: " << tt_units << "\nrecharge_units: " << recharge_units << std::endl;
 
         for(int i = 0; i < smallest_map.float_map.size(); i++)
         {
-            std::vector<float> inside_temp;
+            std::vector< float > inside_temp;
+
             for(int j = 0; j < smallest_map.float_map[i].size(); j++)
             {
-                std::cout << "Starting row " << i << " / " << smallest_map.float_map.size() << " and column " << j << " / " << smallest_map.float_map[i].size() << std::endl;
-                std::cout << "adj_recharge[i][j]" << adj_recharge_in.float_map[recharge_units * i][recharge_units * j] << std::endl;
-                temp = adj_travel_time.float_map[i][j];
+                std::cout << "Entering " << i << "/" << smallest_map.float_map.size() << ", " << j << "/" << smallest_map.float_map[i].size() << std::endl;
+
+                //might go out of bounds -- interest point for later
+                int temp = adj_travel_time.int_map[i * tt_units][j * tt_units];
+
+
                 if(temp != adj_travel_time.NODATA_VALUE)
                 {
                     int access = year - temp;
-                    float units = adj_crops_map[access].cellsize / smallest_map.cellsize;
-                    std::cout << "access: " << access << "\nunits: " << units << std::endl;
-                    if(units > 1)
-                    {
-                        crop_value = adj_crops_map[access].int_map[i * units][j * units];
-                    }
-                    else
-                    {
-                        crop_value = adj_crops_map[access].int_map[i][j];
-                        std::cout << "crop value: " << crop_value << std::endl;
-                    }
-                    bool cool_bool = (lookup_table.string_map[crop_value].size() == 3);
-                    std::cout << "Cool bool: " << cool_bool << std::endl;
-                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3) && (adj_recharge_in.float_map[i / recharge_units][j / recharge_units] != adj_recharge_in.NODATA_VALUE))
+                    //another point of interest -- could grab wrong cell maybe or go OOB
+                    crop_value = adj_crops_map[access].float_map[i][j];
+                    std::cout << "Access: " << access << "\ncrop_value: " << crop_value << std::endl;
+
+                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (is_number(lookup_table.string_map[crop_value][2])))
                     {
                         float area = powf(adj_crops_map[access].cellsize, 2.0f);
-                        float m3_per_day = (adj_recharge_in.float_map[i * recharge_units][j * recharge_units] * 0.0254 * area) / 365;
+                        float current_recharge_cell = get_adj_cell(smallest_map, adj_recharge_in, i, j);
+                        std::cout << "current_recharge_cell: " << current_recharge_cell << std::endl;
+                        float m3_per_day = (current_recharge_cell * 0.0254 * area) / 365;
                         float concentration = std::stof(lookup_table.string_map[crop_value][2]);
-                        //calculating volume in liters
                         float volume = m3_per_day * 1000;
                         float mg_nitrate = (m3_per_day * 1000) * concentration;
                         float kgn_year = mg_nitrate * 365 * powf(10.0f, -6.0f);
@@ -237,25 +236,33 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                         sum_of_volume += volume;
 
                         inside_temp.push_back(kgn_year);
+
                     }
                     else
                     {
                         std::cout << "Not a valid crop value!" << std::endl;
-                        std::cout << "pushing back " << adj_travel_time.NODATA_VALUE << std::endl;
-                        inside_temp.push_back(adj_travel_time.NODATA_VALUE);
+                        inside_temp.push_back(smallest_map.NODATA_VALUE);
                     }
+
                 }
+
                 else
-                    inside_temp.push_back(adj_travel_time.NODATA_VALUE);
+                {
+                    std::cout << "Not a valid travel time value!" << std::endl;
+                    inside_temp.push_back(smallest_map.NODATA_VALUE);
+                }
+
             }
+
             ret.push_back(inside_temp);
-            std::cout << "Pushed back row!" << std::endl;
+
         }
-        std::cout << "Exited loop" << std::endl;
-        Data_Map calculated_map = Data_Map(ret);
-        calculated_map.insert_variables(smallest_map.ncols, smallest_map.nrows, smallest_map.area, smallest_map.xllcorner, smallest_map.yllcorner, smallest_map.cellsize, smallest_map.NODATA_VALUE);
-        std::cout << "Done!" << std::endl;
-        return calculated_map;
+
+        std::cout << "Exited calculation loop with nrows: " << ret.size() << " and ncols: " << ret[0].size();
+        Data_Map return_map = Data_Map(ret);
+        return_map.insert_variables(ret[0].size(), ret.size(), smallest_map.area, smallest_map.xllcorner, smallest_map.yllcorner, smallest_map.cellsize, smallest_map.NODATA_VALUE);
+        return return_map;
+
     }
     else
     {
@@ -276,6 +283,51 @@ bool map_handler::is_number(std::string str)
             return true;
     }
     return false;
+}
+
+//  Gets the average value of a cell when cellsize between two maps is different
+float map_handler::get_adj_cell(Data_Map cmap, Data_Map target, int i, int j)
+{
+    /*steps to get an adjusted cell for coords i, j of a smaller map:
+     * 1. Find "units" of how many cells for the bigger map per cell of the smaller one
+     * 2. BEGIN counting the sum in the bigger map at [i * units][j * units]
+     * 3. Add to sum as many times as units (without going out of bounds)
+     * 3a. Flip between incrementing x and y positions to get data from both dimensions for a cell
+     * 4. Divide sum by number of times you added to sum */
+
+    float units = target.cellsize / cmap.cellsize;
+    std::cout << "units for adj: " << units << std::endl;
+
+    if(/*units > 1*/false)
+    {
+
+        float sum = 0;
+        int xpos = i * units;
+        int ypos = j * units;
+        int count = 0;
+        bool flip = true;
+
+        for(count; (xpos < target.float_map.size()) && (ypos < target.float_map[xpos].size()) && (count < units); count++)
+        {
+            if(target.float_map[xpos][ypos] != target.NODATA_VALUE)
+            {
+                sum += target.float_map[xpos][ypos];
+            }
+            if(flip)
+            {
+                xpos++;
+                flip = !flip;
+            }
+            else
+            {
+                ypos++;
+                flip = !flip;
+            }
+        }
+        return sum / count;
+    }
+    std::cout << "i/units: " << (i/units) << " j/units: " << (j/units) << std::endl;
+    return target.float_map[i / units][j / units];
 }
 
 //Reset all variables for new calculation

@@ -72,7 +72,7 @@ private:
 
     bool is_number(std::string str);
 
-
+    float get_adj_cell(Data_Map cmap, Data_Map target, int i, int j);
 
 };
 
