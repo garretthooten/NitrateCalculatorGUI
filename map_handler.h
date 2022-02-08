@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include "data_map.h"
+#include "ui_mainwindow.h"
 
 
 class map_handler
@@ -36,7 +37,7 @@ public:
     std::map<std::string, Data_Map> get_standardized_maps();
 
     //Performing calculation -- Step 4
-    Data_Map calculate_new_map(int year, float* s_mgn, float* s_volume);
+    Data_Map calculate_new_map(int year, float* s_mgn, float* s_volume, QProgressBar *bar);
 
     Data_Map find_smallest_map(Data_Map tt, Data_Map recharge, std::map<int, Data_Map> cmap);
 

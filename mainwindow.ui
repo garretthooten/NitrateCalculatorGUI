@@ -159,17 +159,17 @@
      <string>Reset</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="smallestbutton">
+   <widget class="QProgressBar" name="progressBar">
     <property name="geometry">
      <rect>
-      <x>480</x>
+      <x>310</x>
       <y>40</y>
-      <width>75</width>
+      <width>481</width>
       <height>23</height>
      </rect>
     </property>
-    <property name="text">
-     <string>find smallest</string>
+    <property name="value">
+     <number>24</number>
     </property>
    </widget>
   </widget>

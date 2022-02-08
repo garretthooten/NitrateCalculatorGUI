@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     this->setWindowTitle("Nitrate Calculator");
+    ui->progressBar->hide();
 }
 
 MainWindow::~MainWindow()
@@ -275,8 +276,10 @@ void MainWindow::on_calculate_button_clicked()
         std::cout << "Save location is: " << string_filepath << std::endl;
 
         //calculating and displaying map
-        Data_Map result = handler.calculate_new_map(calculation_year, &sum_of_MgN, &sum_of_volumes);
-        QString display = QString("Results preview:\nncols: " + QString::number(result.ncols) + "\nnrows: " + QString::number(result.nrows) + "\nxllcorner: " + QString::number(result.xllcorner) + "\nyllcorner: " + QString::number(result.yllcorner) + "\ncellsize: " + QString::number(result.cellsize) + "\nNODATA_VALUE: " + QString::number(result.NODATA_VALUE) + "\n" + print_csv(result));
+        Data_Map result = handler.calculate_new_map(calculation_year, &sum_of_MgN, &sum_of_volumes, ui->progressBar);
+        std::cout << "sum_of_mgn: " << sum_of_MgN << "\nsum_of_volumes: " << sum_of_volumes << std::endl;
+        float rounded_no3 = roundf((sum_of_MgN/sum_of_volumes) * 100) / 100;
+        QString display = QString("Predicted NO3 Concentration (mg/L): " + QString::number(rounded_no3) + "\nMap is calculated in kgN/year per cell.\n\nResults preview:\nncols: " + QString::number(result.ncols) + "\nnrows: " + QString::number(result.nrows) + "\nxllcorner: " + QString::number(result.xllcorner) + "\nyllcorner: " + QString::number(result.yllcorner) + "\ncellsize: " + QString::number(result.cellsize) + "\nNODATA_VALUE: " + QString::number(result.NODATA_VALUE) + "\n" + print_csv(result));
         ui->textBrowser->setText(display);
 
         //saving map to file
@@ -355,9 +358,5 @@ void MainWindow::on_resetButton_clicked()
 
 void MainWindow::on_smallestbutton_clicked()
 {
-    Data_Map current_smallest = handler.find_smallest_map(handler.travel_time, handler.recharge_in, handler.crops_map);
-    QString text = QString("Smallest\nnrows: ") + QString::number(current_smallest.nrows) + "\nncols: " + QString::number(current_smallest.ncols);
-    ui->textBrowser->setText(text);
-    float recharge_units = handler.recharge_in.cellsize / current_smallest.cellsize;
-    std::cout << "handler.recharge_in.cellsize: " << handler.recharge_in.cellsize << "\ncurrent_smallest.cellsize: " << current_smallest.cellsize << "\nrecharge_units: " << (handler.recharge_in.cellsize / current_smallest.cellsize) << std::endl;
+
 }

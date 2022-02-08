@@ -172,10 +172,12 @@ std::map<int, Data_Map> map_handler::get_same_coords(std::map<int, Data_Map> tar
  *  float* s_mgn - where to store the sum of all MgN
  *  float* s_volume - where to store the sum of all volume
  */
-Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
+Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume, QProgressBar *bar)
 {
 
     std::cout << "Entering calculate new map" << std::endl;
+    bar->setValue(0);
+    bar->show();
 
     //Step 1 - Find smallest map
     are_maps_same();
@@ -201,15 +203,14 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
 
         float tt_units = adj_travel_time.cellsize / smallest_map.cellsize;
         float recharge_units = adj_recharge_in.cellsize / smallest_map.cellsize;
-        std::cout << "tt_units: " << tt_units << "\nrecharge_units: " << recharge_units << std::endl;
 
         for(int i = 0; i < smallest_map.float_map.size(); i++)
         {
             std::vector< float > inside_temp;
+            bar->setValue((i / smallest_map.string_map.size()) * 100);
 
             for(int j = 0; j < smallest_map.float_map[i].size(); j++)
             {
-                std::cout << "Entering " << i << "/" << smallest_map.float_map.size() << ", " << j << "/" << smallest_map.float_map[i].size() << std::endl;
 
                 //might go out of bounds -- interest point for later
                 int temp = adj_travel_time.int_map[i * tt_units][j * tt_units];
@@ -220,27 +221,25 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
                     int access = year - temp;
                     //another point of interest -- could grab wrong cell maybe or go OOB
                     crop_value = adj_crops_map[access].float_map[i][j];
-                    std::cout << "Access: " << access << "\ncrop_value: " << crop_value << std::endl;
 
-                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (is_number(lookup_table.string_map[crop_value][2])))
+                    //(is_number(lookup_table.string_map[crop_value][2]))) for mac
+                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3))
                     {
                         float area = powf(adj_crops_map[access].cellsize, 2.0f);
                         float current_recharge_cell = get_adj_cell(smallest_map, adj_recharge_in, i, j);
-                        std::cout << "current_recharge_cell: " << current_recharge_cell << std::endl;
                         float m3_per_day = (current_recharge_cell * 0.0254 * area) / 365;
                         float concentration = std::stof(lookup_table.string_map[crop_value][2]);
                         float volume = m3_per_day * 1000;
                         float mg_nitrate = (m3_per_day * 1000) * concentration;
                         float kgn_year = mg_nitrate * 365 * powf(10.0f, -6.0f);
-                        sum_of_MgN += mg_nitrate;
-                        sum_of_volume += volume;
+                        *s_mgn += mg_nitrate;
+                        *s_volume += volume;
 
                         inside_temp.push_back(kgn_year);
 
                     }
                     else
                     {
-                        std::cout << "Not a valid crop value!" << std::endl;
                         inside_temp.push_back(smallest_map.NODATA_VALUE);
                     }
 
@@ -248,7 +247,6 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
 
                 else
                 {
-                    std::cout << "Not a valid travel time value!" << std::endl;
                     inside_temp.push_back(smallest_map.NODATA_VALUE);
                 }
 
@@ -259,6 +257,7 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume)
         }
 
         std::cout << "Exited calculation loop with nrows: " << ret.size() << " and ncols: " << ret[0].size();
+        bar->hide();
         Data_Map return_map = Data_Map(ret);
         return_map.insert_variables(ret[0].size(), ret.size(), smallest_map.area, smallest_map.xllcorner, smallest_map.yllcorner, smallest_map.cellsize, smallest_map.NODATA_VALUE);
         return return_map;
