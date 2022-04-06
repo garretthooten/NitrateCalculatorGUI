@@ -207,7 +207,9 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume,
         for(int i = 0; i < smallest_map.float_map.size(); i++)
         {
             std::vector< float > inside_temp;
-            bar->setValue((i / smallest_map.string_map.size()) * 100);
+            float progress = ( (float)i / (float)smallest_map.float_map.size()) * 100;
+            bar->setValue(progress);
+            qApp->processEvents();
 
             for(int j = 0; j < smallest_map.float_map[i].size(); j++)
             {
@@ -295,7 +297,7 @@ float map_handler::get_adj_cell(Data_Map cmap, Data_Map target, int i, int j)
      * 4. Divide sum by number of times you added to sum */
 
     float units = target.cellsize / cmap.cellsize;
-    std::cout << "units for adj: " << units << std::endl;
+    //std::cout << "units for adj: " << units << std::endl;
 
     if(/*units > 1*/false)
     {
@@ -325,7 +327,7 @@ float map_handler::get_adj_cell(Data_Map cmap, Data_Map target, int i, int j)
         }
         return sum / count;
     }
-    std::cout << "i/units: " << (i/units) << " j/units: " << (j/units) << std::endl;
+    //::cout << "i/units: " << (i/units) << " j/units: " << (j/units) << std::endl;
     return target.float_map[i / units][j / units];
 }
 
