@@ -13,6 +13,7 @@
 #include <map>
 #include "data_map.h"
 #include "map_handler.h"
+#include "ui_mainwindow.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -42,7 +43,7 @@ private slots:
 
     void on_resetButton_clicked();
 
-    void on_smallestbutton_clicked();
+    void on_devmap_clicked();
 
 private:
     Ui::MainWindow *ui;

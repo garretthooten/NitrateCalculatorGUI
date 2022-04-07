@@ -224,11 +224,12 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume,
                     //another point of interest -- could grab wrong cell maybe or go OOB
                     crop_value = adj_crops_map[access].float_map[i][j];
 
+                    float current_recharge_cell = get_adj_cell(smallest_map, adj_recharge_in, i, j);
+
                     //(is_number(lookup_table.string_map[crop_value][2]))) for mac
-                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3))
+                    if((crop_value != adj_crops_map[access].NODATA_VALUE) && (lookup_table.string_map[crop_value].size() == 3) && (current_recharge_cell != adj_recharge_in.NODATA_VALUE))
                     {
                         float area = powf(adj_crops_map[access].cellsize, 2.0f);
-                        float current_recharge_cell = get_adj_cell(smallest_map, adj_recharge_in, i, j);
                         float m3_per_day = (current_recharge_cell * 0.0254 * area) / 365;
                         float concentration = std::stof(lookup_table.string_map[crop_value][2]);
                         float volume = m3_per_day * 1000;

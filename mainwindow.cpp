@@ -356,7 +356,8 @@ void MainWindow::on_resetButton_clicked()
     }
 }
 
-void MainWindow::on_smallestbutton_clicked()
+void MainWindow::on_devmap_clicked()
 {
+    std::string dialog;
 
 }
