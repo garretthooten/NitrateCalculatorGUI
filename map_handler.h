@@ -12,6 +12,8 @@ class map_handler
 public:
     map_handler();
 
+    int manual_set_nan = 0;
+
     //Beginning data input by user
     Data_Map travel_time;
     Data_Map recharge_in;

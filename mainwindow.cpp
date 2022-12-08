@@ -361,3 +361,4 @@ void MainWindow::on_devmap_clicked()
     std::string dialog;
 
 }
+

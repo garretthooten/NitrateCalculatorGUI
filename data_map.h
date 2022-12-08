@@ -44,6 +44,7 @@ public:
     void gather_variables();
     void insert_variables(int tncols, int tnrows, float tarea, double txllcorner, double tyllcorner, float tcellsize, int tNODATA_VALUE);
     void clear();
+    bool does_exist_in_string_map(std::string);
 };
 
 #endif // DATA_MAP_H

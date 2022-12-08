@@ -180,3 +180,14 @@ void Data_Map::clear()
     successfully_created = false;
 }
 
+bool Data_Map::does_exist_in_string_map(std::string value)
+{
+    std::vector< std::vector<std::string> >::const_iterator row;
+    for(row = string_map.begin(); row != string_map.end(); row++)
+    {
+        if(find(row->begin(), row->end(), value) != row->end())
+            return true;
+    }
+    return false;
+}
+

@@ -1,4 +1,5 @@
 #include "map_handler.h"
+#include "ui_mainwindow.h"
 #include <cmath>
 
 map_handler::map_handler()
@@ -223,6 +224,12 @@ Data_Map map_handler::calculate_new_map(int year, float *s_mgn, float *s_volume,
                     int access = year - temp;
                     //another point of interest -- could grab wrong cell maybe or go OOB
                     crop_value = adj_crops_map[access].float_map[i][j];
+
+                    //making sure that if the value is not a crop lookup value and not the NaN value it does not get ignored
+                    if(!lookup_table.does_exist_in_string_map(std::to_string(crop_value)))
+                    {
+                        crop_value = adj_crops_map[access].NODATA_VALUE;
+                    }
 
                     float current_recharge_cell = get_adj_cell(smallest_map, adj_recharge_in, i, j);
 
