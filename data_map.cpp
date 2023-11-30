@@ -95,11 +95,23 @@ void Data_Map::gather_variables()
         yllcorner = std::atof(string_map[3][1].c_str());
         cellsize = std::stoi(string_map[4][1]);
         NODATA_VALUE = std::stoi(string_map[5][1]);
+        area = ncols * nrows;
     }
     else
     {
         std::cout << "Could not grab variables for " << directory << std::endl;
     }
+}
+
+void Data_Map::insert_variables(int tncols, int tnrows, float tarea, double txllcorner, double tyllcorner, float tcellsize, int tNODATA_VALUE)
+{
+    ncols = tncols;
+    nrows = tnrows;
+    area = tarea;
+    xllcorner = txllcorner;
+    yllcorner = tyllcorner;
+    cellsize = tcellsize;
+    NODATA_VALUE = tNODATA_VALUE;
 }
 
 Data_Map::Data_Map()
@@ -109,7 +121,44 @@ Data_Map::Data_Map()
 
 Data_Map::Data_Map(std::string dir)
 {
-    string_map = parse_CSV(dir);
+    try
+    {
+        std::cout << "Creating data map for " << dir << std::endl;
+        string_map = parse_CSV(dir);
+        int_map = string_to_int(string_map, starting_value);
+        float_map = string_to_float(string_map, starting_value);
+        gather_variables();
+        std::cout << "Data map successfully created for " << dir << std::endl;
+    }
+    catch(std::exception &e)
+    {
+        std::cout << "Error creating data map: " << e.what() << std::endl;
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Error creating data map");
+        messageBox.setFixedSize(500,200);
+    }
+}
+
+Data_Map::Data_Map(std::string dir, bool lookup)
+{
+    try
+    {
+        std::cout << "Creating data map for " << dir << std::endl;
+        string_map = parse_CSV(dir);
+        std::cout << "Data map successfully created for " << dir << std::endl;
+    }
+    catch(std::exception &e)
+    {
+        std::cout << "Error creating data map: " << e.what() << std::endl;
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Error creating data map");
+        messageBox.setFixedSize(500,200);
+    }
+}
+
+Data_Map::Data_Map(std::vector< std::vector< float > > fmap)
+{
+    float_map = fmap;
 }
 
 void Data_Map::clear()
@@ -129,5 +178,16 @@ void Data_Map::clear()
     NODATA_VALUE = -9999;
 
     successfully_created = false;
+}
+
+bool Data_Map::does_exist_in_string_map(std::string value)
+{
+    std::vector< std::vector<std::string> >::const_iterator row;
+    for(row = string_map.begin(); row != string_map.end(); row++)
+    {
+        if(find(row->begin(), row->end(), value) != row->end())
+            return true;
+    }
+    return false;
 }
 

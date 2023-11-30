@@ -11,11 +11,13 @@ CONFIG += c++11
 SOURCES += \
     data_map.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    map_handler.cpp
 
 HEADERS += \
     data_map.h \
-    mainwindow.h
+    mainwindow.h \
+    map_handler.h
 
 FORMS += \
     mainwindow.ui
